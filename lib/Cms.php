@@ -13,7 +13,7 @@ abstract class Cms extends AbstractController{
             if ($_GET["configure"] == "component"){
                 $this->owner->reload();
             } else {
-                $f->js($this->js()->univ()->reloadParent())->univ()->closeDialog()->execute();
+                $f->js($f->js()->univ()->reloadParent())->univ()->closeDialog()->execute();
             }
         }
         return $f;
