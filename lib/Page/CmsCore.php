@@ -117,6 +117,12 @@ class Page_CmsCore extends Page {
             }
             /* add configure buttons for each "tag" */
             $tags = array_keys($this->template->tags);
+            $api_tags = array_keys($this->api->template->tags);
+            foreach ($api_tags as $tag){
+                if (!in_array($tag, $tags)){
+                    $tags[] = $tag;
+                }
+            }
             $mc = $this->add("Model_Cms_Component");
             foreach ($tags as $tag){
                 if (!preg_match("/#[0-9]+$/", $tag) && !in_array($tag, array("_page", "_name"))){
@@ -131,9 +137,14 @@ class Page_CmsCore extends Page {
                             $component = $m->loadData($e["id"])->getRef("cms_component_id");
                             $driver = $component->getRef("cms_componenttype_id");
                             if ($component->get("is_enabled")){
+                                if (($tag != "Content") && in_array($tag, $api_tags)){
+                                    $dest = $this->api;
+                                } else {
+                                    $dest = $this;
+                                }
                                 $element = $this->add($driver->get("class"), null, $tag);
                                 $element->useComponent($component);
-                                $element->configure();
+                                $element->configure($dest, $tag);
                             }
                             if ($this->showConfigure()){
                                 $this->add("Button")->set("Configure " . $component->get("name"))->js("click")

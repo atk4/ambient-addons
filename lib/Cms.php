@@ -1,6 +1,6 @@
 <?php
 
-abstract class Cms extends AbstractView {
+abstract class Cms extends AbstractController{
     function init(){
         parent::init();
     }
@@ -31,5 +31,5 @@ abstract class Cms extends AbstractView {
         $this->configureFields();
         $this->loadData();
     }
-    abstract function configure();
+    abstract function configure($dest, $tag);
 }

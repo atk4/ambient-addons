@@ -18,9 +18,9 @@ class Cms_CRUD extends Cms {
         $this->m->addField("can_edit")->datatype("boolean");
         $this->m->addField("can_delete")->datatype("boolean");
     }
-    function configure(){
+    function configure($dest, $tag){
         if ($this->m->get("model")){
-            $c = $this->add("CRUD");
+            $c = $dest->add("CRUD", null, $tag);
             if ($this->m->get("grid_fields")){
                 $a = explode(",", $this->m->get("grid_fields"));
             }
