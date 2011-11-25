@@ -97,6 +97,16 @@ class Page_CmsCore extends Page {
                     $m->update(array("cms_component_id" => $mc->get("id")));
                     $f->js(null, $g->js(null, $f->js()->reload())->reload()->execute())->univ()->successMessage("Component has been created");
                 }
+                $this->add("Text")->set("Attach existing component");
+                $f =$this->add("Form");
+                $f->addField("Dropdown", "component")->setModel("Cms_Component");
+                $f->addSubmit("Attach");
+                if ($f->isSubmitted()){
+                    $m->update(array("cms_component_id" => $f->get("component")));
+                    $f->js(null, $g->js(null, $f->js()->reload())->reload()->execute())->univ()->successMessage("Component has been attached");
+                }
+
+                
                 $this->add("Button", "close")->set("Close")->js("click")->univ()->location("/" . $this->cms_page);
             }
         } else {
