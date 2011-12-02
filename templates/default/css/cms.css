@@ -1,0 +1,9 @@
+.configure-panel{
+position: fixed;
+display: block;
+top: 0px;
+left: 0px;
+width: 170px;
+}
+.configure-panel button {
+}

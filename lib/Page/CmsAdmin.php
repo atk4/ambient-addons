@@ -1,6 +1,15 @@
 <?php
 
 class Page_CmsAdmin extends Page {
+    function initMainPage(){
+        $t = $this->add("Tabs");
+        $t->addTabURL($this->api->getDestinationURL("./route"), "Routing");
+        $t->addTabURL($this->api->getDestinationURL("./component"), "Component");
+        $t->addTabURL($this->api->getDestinationURL("./componenttype"), "Component types");
+        $t->addTabURL($this->api->getDestinationURL("./page"), "Pages");
+        $t->addTabURL($this->api->getDestinationURL("./pagecomponent"), "Page components");
+
+    }
     function page_component(){
         $c = $this->add("CRUD");
         $c->setModel("Cms_Component");

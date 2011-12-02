@@ -1,11 +1,30 @@
 <?php
 
 class Page_CmsCore extends Page {
+    protected $protected_tags = array(); // non-configurable
+    protected $allowed_tags= array(); // which tags to allow for editing in shared
+    
     private $cms_page;
     private $m;
     private $active;
     private $warning;
     public $stop_render = false;
+    public function removeProtectedTag($tag){
+        unset($this->protected_tags[$tag]);
+    }
+    public function addProtectedTag($tag){
+        if (!in_array($tag, $this->protected_tags)){
+            $this->protected_tags[] = $tag;
+        }
+    }
+    public function removeAllowedTag($tag){
+        unset($this->allowed_tags[$tag]);
+    }
+    public function addAllowedTag($tag){
+        if (!in_array($tag, $this->allowed_tags)){
+            $this->allowed_tags[] = $tag;
+        }
+    }
     function init(){
         parent::init();
         if ((count($this->elements) > 1) && (get_class($this) != "Page_CmsCore")){
@@ -23,10 +42,12 @@ class Page_CmsCore extends Page {
         $this->active = $this->m->getBy("name", $this->cms_page);
         if ($this->active){
             $this->m->loadData($this->active["id"]);
+        } else {
+            // page does not exist
         }
     }
     function initMainPage(){
-        if ($this->m->isInstanceLoaded()){
+        if ($this->m && $this->m->isInstanceLoaded()){
             /* page exists */
             $this->initPage();
         } else {
@@ -112,23 +133,31 @@ class Page_CmsCore extends Page {
         } else {
             
             if ($this->showConfigure()){
-                $this->add("Button")->set("Configure page")->js("click")
-                    ->univ()->frameURL("Configure page", $this->api->getDestinationURL(null, array("configure" => "page")));
+                $this->conf->add("Button")->set("Page settings")->js("click")
+                    ->univ()->frameURL("Page settings", $this->api->getDestinationURL(null, array("configure" => "page")));
             }
             /* add configure buttons for each "tag" */
             $tags = array_keys($this->template->tags);
             $api_tags = array_keys($this->api->template->tags);
             foreach ($api_tags as $tag){
-                if (!in_array($tag, $tags)){
-                    $tags[] = $tag;
+                if (in_array($tag, $this->allowed_tags)){
+                    if (!in_array($tag, $tags)){
+                        $tags[] = $tag;
+                    }
                 }
             }
             $mc = $this->add("Model_Cms_Component");
             foreach ($tags as $tag){
+                if (in_array($tag, $this->protected_tags)){
+                    continue;
+                }
+                if (preg_match("/^_.*/", $tag)){
+                    continue;
+                }
                 if (!preg_match("/#[0-9]+$/", $tag) && !in_array($tag, array("_page", "_name"))){
                     if ($this->showConfigure()){
-                        $this->add("Button")->set("Configure $tag")->js("click")
-                            ->univ()->frameURL("Configure tag $tag", $this->api->getDestinationURL(null, array("configure" => $tag)));
+                        $this->conf->add("Button")->set("Spot: $tag")->js("click")
+                            ->univ()->frameURL("Mangage content of tag $tag", $this->api->getDestinationURL(null, array("configure" => $tag)));
                     }
                     $m = $this->add("Model_Cms_Pagecomponent")->setMasterField("cms_page_id", $this->m->get("id"));
                     $elems = $m->addCondition("template_spot", $tag)->setOrder(null, "ord")->getRows();
@@ -147,7 +176,7 @@ class Page_CmsCore extends Page {
                                 $element->configure($dest, $tag);
                             }
                             if ($this->showConfigure()){
-                                $this->add("Button")->set("Configure " . $component->get("name"))->js("click")
+                                $this->conf->add("Button")->set("Edit '" . $component->get("name")."'")->js("click")
                                     ->univ()->frameURL("Configure " . $component->get("name"), $this->api->getDestinationURL(null, array("configure" => "component", "component_id" => $component->get("id"))));
                             }
                         }
@@ -195,10 +224,12 @@ class Page_CmsCore extends Page {
             $this->api->memorize("showConfigure", $status);
             $this->redirect();
         }
+        $this->api->jui->addStylesheet("cms");
+        $this->conf = $this->api->add("View", null, null, array("view/configure-panel"));
         if ($this->showConfigure()){
-            $this->api->add("Button")->set("Configure off")->js("click")->univ()->location($this->api->getDestinationURL(null, array("showConfigure" => "off")));
+            $this->conf->add("Button")->set("Turn off editing")->js("click")->univ()->location($this->api->getDestinationURL(null, array("showConfigure" => "off")));
         } else {
-            $this->api->add("Button")->set("Configure on")->js("click")->univ()->location($this->api->getDestinationURL(null, array("showConfigure" => "on")));
+            $this->conf->add("Button")->set("Turn on editing")->js("click")->univ()->location($this->api->getDestinationURL(null, array("showConfigure" => "on")));
         }
     }
     function showConfigure(){
