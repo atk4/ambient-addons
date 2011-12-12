@@ -1,4 +1,9 @@
 <?php
+/**
+  * Implements rendering capabilities of CMS
+  *
+  * Editing capabilities are moved into CmsFrame.php
+  */
 
 class Page_CmsCore extends Page {
     protected $protected_tags = array(); // non-configurable
@@ -9,6 +14,9 @@ class Page_CmsCore extends Page {
     private $active;
     private $warning;
     public $stop_render = false;
+    function getCmsAdminPage(){
+        return $this->api->getDestinationURL('cmsframe',array('cms_page'=>$this->cms_page));//api->page));
+    }
     public function removeProtectedTag($tag){
         unset($this->protected_tags[$tag]);
     }
@@ -28,7 +36,7 @@ class Page_CmsCore extends Page {
     function init(){
         parent::init();
         if ((count($this->elements) > 1) && (get_class($this) != "Page_CmsCore")){
-            $this->warning("If you extends Page_CmsCore, move initialization to initMainPage from init");
+            $this->warning("If you extends Page_CmsCore, move initialization to page_index from init");
         }
         $this->canConfigure();
     }
@@ -46,7 +54,7 @@ class Page_CmsCore extends Page {
             // page does not exist
         }
     }
-    function initMainPage(){
+    function page_index(){
         if ($this->m && $this->m->isInstanceLoaded()){
             /* page exists */
             $this->initPage();
@@ -103,7 +111,8 @@ class Page_CmsCore extends Page {
                     $m->loadData($page_component_id);
                     if ($m->isInstanceLoaded()){
                         $component_id = $m->get("cms_component_id");
-                        $g->js()->univ()->frameURL("Configure", $this->api->getDestinationURL(null, array("component_id" => $component_id)))->execute();
+                        $g->js()->univ()->frameURL("Configure", $this->api->getDestinationURL($this->getCmsAdminPage()
+                                    , array("component_id" => $component_id)))->execute();
                     } else {
                         $g->js()->univ()->alert("error - could not load $page_component_id?")->execute();
                     }
@@ -132,9 +141,10 @@ class Page_CmsCore extends Page {
             }
         } else {
             
-            if ($this->showConfigure()){
+            if ($this->showConfigure('dev')){
                 $this->conf->add("Button")->set("Page settings")->js("click")
-                    ->univ()->frameURL("Page settings", $this->api->getDestinationURL(null, array("configure" => "page")));
+                    ->univ()->frameURL("Page settings", $this->api->getDestinationURL($this->getCmsAdminPage()
+                                , array("configure" => "page")));
             }
             /* add configure buttons for each "tag" */
             $tags = array_keys($this->template->tags);
@@ -155,32 +165,50 @@ class Page_CmsCore extends Page {
                     continue;
                 }
                 if (!preg_match("/#[0-9]+$/", $tag) && !in_array($tag, array("_page", "_name"))){
-                    if ($this->showConfigure()){
+                    if ($this->showConfigure('dev')){
                         $this->conf->add("Button")->set("Spot: $tag")->js("click")
-                            ->univ()->frameURL("Mangage content of tag $tag", $this->api->getDestinationURL(null, array("configure" => $tag)));
+                            ->univ()->frameURL("Mangage content of tag $tag",
+                                    $this->api->getDestinationURL($this->getCmsAdminPage()
+                                        , array("configure" => $tag)));
                     }
                     $m = $this->add("Model_Cms_Pagecomponent")->setMasterField("cms_page_id", $this->m->get("id"));
                     $elems = $m->addCondition("template_spot", $tag)->setOrder(null, "ord")->getRows();
+                    if (($tag != "Content") && in_array($tag, $api_tags)){
+                        $dest = $this->api;
+                    } else {
+                        $dest = $this;
+                    }
                     if ($elems){
                         foreach ($elems as $e){
                             $component = $m->loadData($e["id"])->getRef("cms_component_id");
                             $driver = $component->getRef("cms_componenttype_id");
+                            $obj=null;
+
+                            if ($this->showConfigure()){
+                                $button = $dest->add("Button", null, $tag);
+                                //if($obj)$button->js('mouseover',$obj->js()->fadeOut()->fadeIn());
+                                $this->api->stickyGET("cms_page");
+                                $button->set("Edit '" . $component->get("name")."'")->js("click")
+                                    ->univ()->frameURL("Configure " . $component->get("name"),
+                                            $this->api->getDestinationURL($this->getCmsAdminPage()
+                                                , array("configure" => "component", "component_id" => $component->get("id"))));
+                            }
+
                             if ($component->get("is_enabled")){
-                                if (($tag != "Content") && in_array($tag, $api_tags)){
-                                    $dest = $this->api;
-                                } else {
-                                    $dest = $this;
-                                }
                                 $element = $this->add($driver->get("class"), null, $tag);
                                 $element->useComponent($component);
-                                $element->configure($dest, $tag);
-                            }
-                            if ($this->showConfigure()){
-                                $this->conf->add("Button")->set("Edit '" . $component->get("name")."'")->js("click")
-                                    ->univ()->frameURL("Configure " . $component->get("name"), $this->api->getDestinationURL(null, array("configure" => "component", "component_id" => $component->get("id"))));
+                                try {
+                                    $obj =$element->configure($dest, $tag);
+                                }catch(Exception $e){
+                                    $dest->add('View_Error')->set('Problem with this widget: '.$e->getMessage());
+                                }
                             }
                         }
                     }
+                    /*
+                    $dest->add('Button',null,$tag)->set('Add Text')
+                        ->js('click');
+                        */
                 }
             }
             if ($this->showConfigure()){
@@ -200,8 +228,14 @@ class Page_CmsCore extends Page {
         header("Location: " ."/" . $this->cms_page);
         exit;
     }
-    function defaultTemplate(){
+    function initializeTemplate($template_spot=null,$template_branch=null){
         $this->preInit();
+        if($_GET['configure']){
+            $template_branch=array('page');
+        }
+        return parent::initializeTemplate($template_spot,$template_branch);
+    }
+    function defaultTemplate(){
         if ($this->active && (!$_GET["configure"] || !$this->showConfigure())){
             if ($l = $this->active["page_layout"]){
                 try {
@@ -220,96 +254,29 @@ class Page_CmsCore extends Page {
         $this->warning[] = $msg;
     }
     function canConfigure(){
+        if (!$this->api->canConfigureCms()){
+            return;
+        }
         if ($status = $_GET["showConfigure"]){
             $this->api->memorize("showConfigure", $status);
-            $this->redirect();
+            if ($status == "off"){
+                $this->api->forget("cmsediting");
+                header('Location: /admin/');
+                exit;
+            }
         }
         $this->api->jui->addStylesheet("cms");
         $this->conf = $this->api->add("View", null, null, array("view/configure-panel"));
-        if ($this->showConfigure()){
-            $this->conf->add("Button")->set("Turn off editing")->js("click")->univ()->location($this->api->getDestinationURL(null, array("showConfigure" => "off")));
-        } else {
-            $this->conf->add("Button")->set("Turn on editing")->js("click")->univ()->location($this->api->getDestinationURL(null, array("showConfigure" => "on")));
-        }
+        $this->conf->add("Button")->set("Exit CMS")->js("click")->univ()->location($this->api->getDestinationURL(null, array("showConfigure" => "off")));
     }
-    function showConfigure(){
-        if ($this->api->recall("showConfigure") == "on"){
-            return true;
-        } else {
-            return false;
+    function showConfigure($level){
+        if ($level && ($this->getCmsLevel() != $level)){
+            return;
         }
+        return $this->api->recall('cmsediting',false);
     }
-}
-class Controller_GridOrder extends AbstractController {
-    public $model;
-
-    function init(){
-        parent::init();
-
-        $this->owner->addButton('Re-order records')
-            ->js('click')->univ()->frameURL('Re-order records',
-                    $this->api->getDestinationURL(null,
-                        array($this->name=>'activate')),array('width'=>'500px'));
-
-        $this->owner->dq->order('ord');
-
-        if($_GET[$this->name]=='activate'){
-            $this->api->stickyGET($this->name);
-            $this->initFrame();
-        }
+    function getCmsLevel(){
+        return $this->api->recall('cmslevel', false);
     }
-    function initFrame(){
-        $v=$this->owner->owner->add('View',null,$this->owner->spot);
-        $_GET['cut_object']=$v->name;
 
-        $v->add('H1')->set('Re-order records the way you like');
-
-
-        $lister=$v->add('MVCLister',null,null,array('view/gridorder'));
-        $this->model=$m=$this->owner->getModel();
-
-        if(!$m->hasField('ord')){
-            $m->addField('ord')->system(true);
-        }
-
-        $lister->setModel($m);
-        $lister->dq->order('ord');
-
-        $lister->js(true)->sortable();
-
-        $v->add('Button')->set('Save')->js('click')->univ()->ajaxec(
-                array($this->api->getDestinationURL(),
-                $this->name.'_order'=>$v->js(null,"\$('#{$lister->name}').children().map(function(){ return $(this).attr('data-id'); }).get().join(',')")
-                )
-            );
-        if(isset($_GET[$this->name.'_order'])){
-            $this->processReorder($_GET[$this->name.'_order']);
-            $v->js(null,$this->owner->js()->reload(array($this->name=>false)))->univ()->closeDialog()->successMessage('New order saved')->execute();
-        }
-    }
-    function processReorder($id_order){
-        // add missing "ord" fields
-        $q=$this->model->dsql();
-        $q->set('ord=id');
-        $q->where('ord is null');
-        $q->do_update();
-
-        $q=$this->model->dsql()->field('id')->field('ord');
-        $seq=$q->do_getAllHash();
-
-        // extract ORDs
-        $ord=array();
-        foreach($seq as $key=>$val){
-            $ord[]=$val['ord'];
-        }
-
-        sort($ord);
-        
-        foreach(explode(',',$id_order) as $id){
-            $q=$this->model->dsql();
-            $q->set('ord',array_shift($ord));
-            $q->where('id',$id);
-            $q->do_update();
-        }
-    }
 }
