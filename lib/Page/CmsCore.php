@@ -261,7 +261,8 @@ class Page_CmsCore extends Page_CmsAbstract {
             $this->api->memorize("showConfigure", $status);
             if ($status == "off"){
                 $this->api->forget("cmsediting");
-                header('Location: /admin/');
+                $this->redirect();
+                //header('Location: /admin/');
                 exit;
             }
         }

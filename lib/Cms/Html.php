@@ -24,7 +24,7 @@ class Cms_Html extends Cms {
                 'cssfiles'=>array('/cms/templates/default/css/editor.css'),
                 'toolbar'=> 'maxi')
             );
-
+        $this->submit_btn->js(true)->unbind("click")->bind("click", $this->submit_btn->js(null, '$(".elrte_editor").elrte()[0].save();return false')->_enclose());
         return $f;
     }
     function configure($dest, $tag){
