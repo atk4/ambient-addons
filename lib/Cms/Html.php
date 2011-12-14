@@ -1,15 +1,19 @@
 <?php
 class Cms_Html extends Cms {
+    protected $elem_template = null;
     function init(){
         parent::init();
-        $this->api->jquery->addStylesheet('elrte/css/elrte.full','.css',true);
     }
     function configureFields(){
         $this->m->addField('content')->type('text')->allowHtml(true);
         $this->m->addField('images')->type('string')->refModel('Model_Filestore_Image')->display("file");
     }
     function showConfigureForm($target){
+        //$this->js(true)->jquery->addStylesheet('elrte/css/elrte.full','.css',true);
+
         $f=parent::showConfigureForm($target);
+        $f->template->append('Content',
+                '<link type="text/css" href="'.$this->api->locateURL('css','elrte/css/elrte.full.css').'" rel="stylesheet" />'."\n");
         $f->setFormClass("empty");
         $f->getElement("images")->allowMultiple(10)
             ->setFormatFilesTemplate("view/cms_files");
@@ -28,7 +32,8 @@ class Cms_Html extends Cms {
         return $f;
     }
     function configure($dest, $tag){
-        return $dest->add('HtmlElement',null,$tag)
-            ->set($this->m->get('content'));
+        $o = $dest->add('View',null,$tag,$this->elem_template);
+        $o->template->set("Content", $this->m->get('content'));
+        return $o;
     }
 }
