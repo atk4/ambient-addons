@@ -5,7 +5,7 @@
   * Editing capabilities are moved into CmsFrame.php
   */
 
-class Page_CmsCore extends Page {
+class Page_CmsCore extends Page_CmsAbstract {
     protected $protected_tags = array(); // non-configurable
     protected $allowed_tags= array(); // which tags to allow for editing in shared
     
@@ -198,8 +198,8 @@ class Page_CmsCore extends Page {
                                 $element = $this->add($driver->get("class"), null, $tag);
                                 $element->useComponent($component);
                                 try {
-                                    $obj =$element->configure($dest, $tag);
-                                }catch(Exception $e){
+                                    $obj = $element->configure($dest, $tag);
+                                } catch (Exception $e){
                                     $dest->add('View_Error')->set('Problem with this widget: '.$e->getMessage());
                                 }
                             }
@@ -261,7 +261,8 @@ class Page_CmsCore extends Page {
             $this->api->memorize("showConfigure", $status);
             if ($status == "off"){
                 $this->api->forget("cmsediting");
-                header('Location: /admin/');
+                $this->redirect();
+                //header('Location: /admin/');
                 exit;
             }
         }

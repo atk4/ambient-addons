@@ -7,7 +7,7 @@ abstract class Cms extends AbstractController{
     function showConfigureForm($target){
         $f = $target->add("MVCForm", "configureForm");
         $f->setModel($this->m);
-        $f->addSubmit("Save Config");
+        $this->submit_btn = $f->addSubmit("Save Config");
         if ($f->isSubmitted()){
             $this->component->update(array("config" => base64_encode(serialize($f->getAllData()))));
             if ($_GET["configure"] == "component"){

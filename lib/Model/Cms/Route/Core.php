@@ -15,6 +15,8 @@ class Model_Cms_Route_Core extends Model_Table {
         ->datatype("text");
         $this->addField("params")
         ->datatype("text");
+        $this->addField("ord")
+        ->datatype("int");
         
     }
 }

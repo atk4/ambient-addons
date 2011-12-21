@@ -16,7 +16,8 @@ class Controller_Cms extends AbstractController {
         // register new method for checking if configuration is accessible
     }
     function canConfigure(){
-        /* should be redefined in custom cms controller */
-        return false;
+        /* should be redefined in custom cms if necessary controller */
+        $r = $this->api->recall('cmsediting',false);
+        return $r;
     }
 }
