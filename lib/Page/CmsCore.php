@@ -200,6 +200,11 @@ class Page_CmsCore extends Page_CmsAbstract {
                                 try {
                                     $obj = $element->configure($dest, $tag);
                                 } catch (Exception $e){
+                                    //$this->api->caughtException($e);
+                                    if($this->api->logger->log_output){
+                                        // a bit of hacing
+                                        $this->api->logger->logCaughtException($e);
+                                    }
                                     $dest->add('View_Error')->set('Problem with this widget: '.$e->getMessage());
                                 }
                             }
