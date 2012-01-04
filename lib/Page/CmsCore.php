@@ -271,7 +271,7 @@ class Page_CmsCore extends Page_CmsAbstract {
         $this->conf->add("Button")->set("Exit CMS")->js("click")->univ()->location($this->api->getDestinationURL(null, array("showConfigure" => "off")));
     }
     function showConfigure($level){
-        if ($level && ($this->getCmsLevel() != $level)){
+        if ($level && ($this->getCmsLevel() !== $level)){
             return;
         }
         return $this->api->recall('cmsediting',false);
