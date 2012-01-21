@@ -12,7 +12,17 @@ class Controller_Cms extends AbstractController {
         }
         $r = $this->api->add("Controller_PatternRouter");
         $r->setModel("Cms_Route");
+        $r->addRule("img\/(.*)", "cms", array("img"));
         $r->route();
+        $this->api->auth->allowPage("img");
+        if (($this->api->page == "cms") && $_GET["img"]){
+            /* pass through files */
+            $f = $this->add("Model_Filestore_File")->loadData($_GET["img"]);
+            if ($f->isInstanceLoaded()){
+                header("Location: /" . $f->getPath());
+                exit;
+            }
+        }
         // register new method for checking if configuration is accessible
     }
     function canConfigure(){
