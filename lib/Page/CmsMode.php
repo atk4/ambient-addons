@@ -1,5 +1,6 @@
 <?php
 class Page_CmsMode extends Page {
+    public $level = "dev";
     function init(){
         parent::init();
 
@@ -7,7 +8,7 @@ class Page_CmsMode extends Page {
         $a=new ApiWeb($this->api->getConfig("frontend/token"));
         $a->initializeSession(true);
         $a->memorize('cmsediting',true);
-        $a->memorize('cmslevel','dev'); // switch to true to have plain cms mode
+        $a->memorize('cmslevel',$this->level); // switch to true to have plain cms mode
         header('Location: /');
 
     }
