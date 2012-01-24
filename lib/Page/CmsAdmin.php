@@ -8,11 +8,16 @@ class Page_CmsAdmin extends Page {
         $t->addTabURL($this->api->getDestinationURL("./componenttype"), "Component types");
         $t->addTabURL($this->api->getDestinationURL("./page"), "Pages");
         $t->addTabURL($this->api->getDestinationURL("./pagecomponent"), "Page components");
+        $t->addTabURL($this->api->getDestinationURL("./tag"), "Tags");
 
     }
     function page_component(){
         $c = $this->add("CRUD");
         $c->setModel("Cms_Component");
+    }
+    function page_tag(){
+        $c = $this->add("CRUD");
+        $c->setModel("Cms_Tag");
     }
     function page_componenttype(){
         $this->add("CRUD")->setModel("Cms_Componenttype");

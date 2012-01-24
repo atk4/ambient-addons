@@ -23,6 +23,13 @@ class Controller_Cms extends AbstractController {
                 exit;
             }
         }
+        /* set tags */
+        $t = $this->add("Model_Cms_Tag")->getRows();
+        if ($t){
+            foreach ($t as $v){
+                $this->api->template->trySet($v["name"], $v["value"]);
+            }
+        }
         // register new method for checking if configuration is accessible
     }
     function canConfigure(){
