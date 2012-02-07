@@ -38,14 +38,14 @@ class page_cms extends Page_CmsCore {
 6) In admin, add cms toggle swith in menu:
 
            ->addMenuItem('CMS settings', 'cms')
-           ->addMenuItem('Go CMS', 'cmsmode')
+           ->addMenuItem('Go CMS', 'gocms')
 
-7) Add page/cmsmode.php 
+7) Add page/gocms.php 
 
-class page_cmsmode extends Page_CmsMode {
+class page_gocms extends Page_CmsMode {
 }
 
-important, in $config["frontend"]["token"] - you have to specify the token that the Frontend is using for session separation
+important, in $config["frontend"]["token"] - you have to specify the 'Realm' Frontend is using (check your index.php file)
 
 8) Add page/cms.php
 
