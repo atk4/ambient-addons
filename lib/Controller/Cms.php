@@ -19,7 +19,9 @@ class Controller_Cms extends AbstractController {
             /* pass through files */
             $f = $this->add("Model_Filestore_File")->loadData($_GET["img"]);
             if ($f->isInstanceLoaded()){
-                header("Location: /" . $f->getPath());
+                session_write_close();
+                header("Content-type: image/jpeg");
+                print file_get_contents($f->getPath());
                 exit;
             }
         }
