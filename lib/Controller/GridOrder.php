@@ -64,12 +64,16 @@ class Controller_GridOrder extends AbstractController {
         }
 
         sort($ord);
-        
+        $list = array();
         foreach(explode(',',$id_order) as $id){
             $q=$this->model->dsql();
             $q->set('ord',array_shift($ord));
             $q->where('id',$id);
             $q->do_update();
+            $list[] = $id;
+        }
+        foreach ($list as $id){
+            $this->model->loadData($id)->hook("post-order");
         }
     }
 }

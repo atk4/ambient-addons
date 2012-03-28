@@ -45,8 +45,8 @@ class Markdown_Parser {
     var $escape_chars_re;
 
     # Change to ">" for HTML output.
-    var $empty_element_suffix = MARKDOWN_EMPTY_ELEMENT_SUFFIX;
-    var $tab_width = MARKDOWN_TAB_WIDTH;
+    var $empty_element_suffix = '';
+    var $tab_width = 4;
     
     # Change to `true` to disallow markup or entities.
     var $no_markup = false;

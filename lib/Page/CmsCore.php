@@ -137,7 +137,7 @@ class Page_CmsCore extends Page_CmsAbstract {
                 }
 
                 
-                $this->add("Button", "close")->set("Close")->js("click")->univ()->location("/" . $this->cms_page);
+                $this->add("Button", "close")->set("Close")->js("click")->univ()->location($this->stripUrl($this->cms_page));
             }
         } else {
             
@@ -227,11 +227,10 @@ class Page_CmsCore extends Page_CmsAbstract {
         $this->reloadJS()->execute();
     }
     function reloadJS(){
-        return $this->js()->univ()->location("/" . $this->cms_page);
+        return $this->js()->univ()->location($this->stripUrl($this->cms_page));
     }
     function redirect(){
-        header("Location: " ."/" . $this->cms_page);
-        exit;
+        $this->api->redirect($this->stripUrl($this->cms_page));
     }
     function initializeTemplate($template_spot=null,$template_branch=null){
         $this->preInit();
@@ -275,7 +274,7 @@ class Page_CmsCore extends Page_CmsAbstract {
         $this->conf = $this->api->add("View", null, null, array("view/configure-panel"));
         $this->conf->add("Button")->set("Exit CMS")->js("click")->univ()->location($this->api->getDestinationURL(null, array("showConfigure" => "off")));
     }
-    function showConfigure($level){
+    function showConfigure($level=null){
         if ($level && ($this->getCmsLevel() !== $level)){
             return;
         }
@@ -284,5 +283,12 @@ class Page_CmsCore extends Page_CmsAbstract {
     function getCmsLevel(){
         return $this->api->recall('cmslevel', false);
     }
+    function stripUrl($page){
+        return $this->add('NoArgURL')->setPage($page);
+    }
 
+}
+class NoArgURL extends URL {
+    function addStickyArguments(){
+    }
 }

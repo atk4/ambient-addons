@@ -1,5 +1,6 @@
 <?php
 class Cms_Gallery extends Cms {
+    public $prefix='';
     function init(){
         parent::init();
         $this->api->jquery->addStaticInclude('lightbox/js/jquery.lightbox-0.5');
@@ -22,7 +23,8 @@ class Cms_Gallery extends Cms {
         foreach ($files as $file){
             $m->loadData($file);
             if ($m->isInstanceLoaded()){
-                $tmp[] = array("id" => $file, "thumb_id" => $m->get("thumb_file_id"));
+                $tmp[] = array('image'=>$this->prefix.$m->getPath(), 'thumb'=>$this->prefix.$m->getRef('thumb_file_id')->getPath());
+                //"id" => $file, "thumb_id" => $m->get("thumb_file_id"));
             }
         }
         if (!empty($tmp)){
@@ -31,11 +33,11 @@ class Cms_Gallery extends Cms {
             $l = $v->add("Lister", null, "thumbs", array("view/gallery_lister"));
             $l->setStaticSource($tmp);
             $v->js(true)->_selector(".gallery a")->lightBox(array(
-                "imageLoading" => "/cms/templates/js/lightbox/images/lightbox-ico-loading.gif",
-                "imageBtnPrev" => "/cms/templates/js/lightbox/images/lightbox-btn-prev.gif",
-                "imageBtnNext" => "/cms/templates/js/lightbox/images/lightbox-btn-next.gif",
-                "imageBtnClose" => "/cms/templates/js/lightbox/images/lightbox-btn-close.gif",
-                "imageBlank" => "/cms/templates/js/lightbox/images/lightbox-blank.gif"
+                "imageLoading" => $this->api->locateURL('js',"lightbox/images/lightbox-ico-loading.gif"),
+                "imageBtnPrev" => $this->api->locateURL('js',"lightbox/images/lightbox-btn-prev.gif"),
+                "imageBtnNext" => $this->api->locateURL('js',"lightbox/images/lightbox-btn-next.gif"),
+                "imageBtnClose" => $this->api->locateURL('js',"lightbox/images/lightbox-btn-close.gif"),
+                "imageBlank" => $this->api->locateURL('js',"lightbox/images/lightbox-blank.gif")
             ));
             return $v;
         }

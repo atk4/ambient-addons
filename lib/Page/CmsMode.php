@@ -9,7 +9,7 @@ class Page_CmsMode extends Page {
         $a->initializeSession(true);
         $a->memorize('cmsediting',true);
         $a->memorize('cmslevel',$this->level); // switch to true to have plain cms mode
-        header('Location: /');
+        header('Location: '.$this->api->pm->base_path.'..');
 
     }
 }
