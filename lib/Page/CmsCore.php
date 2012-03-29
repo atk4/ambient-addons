@@ -284,7 +284,8 @@ class Page_CmsCore extends Page_CmsAbstract {
         return $this->api->recall('cmslevel', false);
     }
     function stripUrl($page){
-        return $this->add('NoArgURL')->setPage($page);
+        $page = preg_replace("/.html/", "", $page);
+        $s = $this->add('NoArgURL')->setPage($page);
     }
 
 }
