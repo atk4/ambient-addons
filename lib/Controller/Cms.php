@@ -20,7 +20,7 @@ class Controller_Cms extends AbstractController {
             $f = $this->add("Model_Filestore_File")->loadData($_GET["img"]);
             if ($f->isInstanceLoaded()){
                 session_write_close();
-                header("Content-type: image/jpeg");
+                header("Content-type: " . $t->getRef("filestore_type_id")->get("mime_type"));
                 print file_get_contents($f->getPath());
                 exit;
             }
