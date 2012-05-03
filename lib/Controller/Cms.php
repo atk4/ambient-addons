@@ -14,7 +14,9 @@ class Controller_Cms extends AbstractController {
         $r->setModel("Cms_Route");
         $r->addRule("img\/(.*)", "cms", array("img"));
         $r->route();
-        $this->api->auth->allowPage("img");
+        if (isset($this->api->auth)){
+            $this->api->auth->allowPage("img");
+        }
         if (($this->api->page == "cms") && $_GET["img"]){
             /* pass through files */
             $f = $this->add("Model_Filestore_File")->loadData($_GET["img"]);
@@ -31,6 +33,10 @@ class Controller_Cms extends AbstractController {
             foreach ($t as $v){
                 $this->api->template->trySet($v["name"], $v["value"]);
             }
+            $obj = $this;
+            $this->api->addHook("pre-render", function() use ($t,$obj){
+                $obj->api->hook("cms-tags", array($t));
+            });
         }
         // register new method for checking if configuration is accessible
     }
