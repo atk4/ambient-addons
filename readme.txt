@@ -1,3 +1,5 @@
+4.2 Install notes
+================
 Installation.
 
 1) Edit your lib/Frontend.php (or alternative API)
