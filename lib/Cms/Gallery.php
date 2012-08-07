@@ -1,5 +1,6 @@
 <?php
-class Cms_Gallery extends Cms {
+namespace cms;
+class Cms_Gallery extends \Cms {
     public $prefix='';
     function init(){
         parent::init();
@@ -9,7 +10,7 @@ class Cms_Gallery extends Cms {
     }
     function configureFields(){
         $this->m->addField('name');
-        $this->m->addField('images')->type('string')->refModel('Model_Filestore_Image')->display("file");
+        $this->m->add('filestore/Field_Image', 'images');
     }
     function showConfigureForm($target){
         $f=parent::showConfigureForm($target);
@@ -18,13 +19,12 @@ class Cms_Gallery extends Cms {
         return $f;
     }
     function configure($dest, $tag){
-        $m = $this->add("Model_Filestore_Image");
+        $m = $this->add("filestore/Model_Image");
         $files = explode(",", $this->m->get("images"));
         foreach ($files as $file){
-            $m->loadData($file);
-            if ($m->isInstanceLoaded()){
+            $m->tryLoad($file);
+            if ($m->loaded()){
                 $tmp[] = array('image'=>$this->prefix.$m->getPath(), 'thumb'=>$this->prefix.$m->getRef('thumb_file_id')->getPath());
-                //"id" => $file, "thumb_id" => $m->get("thumb_file_id"));
             }
         }
         if (!empty($tmp)){

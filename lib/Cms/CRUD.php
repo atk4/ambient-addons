@@ -1,10 +1,9 @@
 <?php
-
+namespace cms;
 class Cms_CRUD extends Cms {
     function configureFields(){
         $l=$this->api->locatePath('php','Model');
         $this->addPath($l);
-        $models = array();
         $models = array();
         foreach ($this->paths as $path){
             $this->findModels($path, $models);

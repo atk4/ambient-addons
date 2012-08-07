@@ -1,17 +1,27 @@
 <?php
-
-class Controller_Cms extends AbstractController {
+namespace cms;
+class Controller_Cms extends \AbstractController {
     function init(){
         parent::init();
+        $this->api->addLocation('ambient/cms',array(
+                    'template'=>'templates/default',
+                    'css'=>'templates/default/css',
+                    'js'=>'templates/js'
+                    )
+                )
+                ->setParent($this->api->pathfinder->base_location);
 
+
+        $this->owner->cms = $this;
         $this->owner->addMethod("canConfigureCms", array($this, "canConfigure"));
         // 
-        if($this->api->page=='cmsframe'){
-            $this->api->page_object = $this->api->add('Page_CmsFrame');
+        /*if($this->api->page=='cmsframe'){
+            $this->api->page_object = $this->api->add('cms/Page_CmsFrame');
             return;
-        }
-        $r = $this->api->add("Controller_PatternRouter");
-        $r->setModel("Cms_Route");
+        }*/
+
+        $r = $this->api->add("misc/Controller_PatternRouter");
+        $r->setModel($this->add("cms/Model_Cms_Route"));
         $r->addRule("img\/(.*)", "cms", array("img"));
         $r->route();
         if (isset($this->api->auth)){
@@ -19,16 +29,16 @@ class Controller_Cms extends AbstractController {
         }
         if (($this->api->page == "cms") && $_GET["img"]){
             /* pass through files */
-            $f = $this->add("Model_Filestore_File")->loadData($_GET["img"]);
-            if ($f->isInstanceLoaded()){
+            $f = $this->add("filestore/Model_Image")->tryLoad($_GET["img"]);
+            if ($f->loaded()){
                 session_write_close();
-                header("Content-type: " . $t->getRef("filestore_type_id")->get("mime_type"));
+                header("Content-type: " . $f->ref("filestore_type_id")->get("mime_type"));
                 print file_get_contents($f->getPath());
                 exit;
             }
         }
         /* set tags */
-        $t = $this->add("Model_Cms_Tag")->getRows();
+        $t = $this->add("cms/Model_Cms_Tag")->getRows();
         if ($t){
             foreach ($t as $v){
                 $this->api->template->trySet($v["name"], $v["value"]);

@@ -1,4 +1,5 @@
 <?php
+namespace cms;
 /**
   * Implements editing capabilities of CMS
   */
@@ -8,7 +9,7 @@ class Page_CmsFrame extends Page_CmsCore{
         if(!$_GET['cms_page']){
             throw $this->exception('cms_page must be set');
         }
-        $this->initPage();
+        //$this->initPage();
     }
 }
 

@@ -1,6 +1,6 @@
 <?php
-
-class Controller_GridOrder extends AbstractController {
+namespace cms;
+class Controller_GridOrder extends \AbstractController {
     public $model;
 
     function init(){

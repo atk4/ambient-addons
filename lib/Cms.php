@@ -1,15 +1,15 @@
 <?php
-
-abstract class Cms extends AbstractController{
+namespace cms;
+abstract class Cms extends \AbstractController{
     function init(){
         parent::init();
     }
     function showConfigureForm($target){
-        $f = $target->add("MVCForm", "configureForm");
+        $f = $target->add("Form", "configureForm");
         $f->setModel($this->m);
         $this->submit_btn = $f->addSubmit("Save Config");
         if ($f->isSubmitted()){
-            $this->component->update(array("config" => base64_encode(serialize($f->getAllData()))));
+            $this->component->update(array("config" => base64_encode(serialize($f->get()))));
             if ($_GET["configure"] == "component"){
                 $this->owner->reload();
             } else {
@@ -27,7 +27,7 @@ abstract class Cms extends AbstractController{
     }
     function useComponent($component){
         $this->component = $component;
-        $this->m = $this->add("Model_Cms_Config");
+        $this->m = $this->add("cms/Model_Cms_Config");
         $this->configureFields();
         $this->loadData();
     }
