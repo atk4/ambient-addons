@@ -23,18 +23,30 @@ class Controller_Cms extends \AbstractController {
         $r = $this->api->add("misc/Controller_PatternRouter");
         $r->setModel($this->add("cms/Model_Cms_Route"));
         $r->addRule("img\/(.*)", "cms", array("img"));
+        $r->addRule("file\/(.*)", "cms", array("file"));
         $r->route();
         if (isset($this->api->auth)){
             $this->api->auth->allowPage("img");
         }
-        if (($this->api->page == "cms") && $_GET["img"]){
-            /* pass through files */
-            $f = $this->add("filestore/Model_Image")->tryLoad($_GET["img"]);
-            if ($f->loaded()){
-                session_write_close();
-                header("Content-type: " . $f->ref("filestore_type_id")->get("mime_type"));
-                print file_get_contents($f->getPath());
-                exit;
+        if (($this->api->page == "cms")){
+            $f=null;
+            if ($_GET["img"]){
+                /* pass through images */
+                $f = $this->add("filestore/Model_Image")->tryLoad($_GET["img"]);
+            } else if ($_GET["file"]){
+                $f = $this->add("filestore/Model_File")->tryLoad($_GET["file"]);
+            }
+            if ($f){
+                if ($f->loaded()){
+                    session_write_close();
+                    header("Content-type: " . $f->ref("filestore_type_id")->get("mime_type"));
+                    print file_get_contents($f->getPath());
+                    exit;
+                } else {
+                    var_duMP($_GET);
+                    echo "could not load requested file";
+                    exit;
+                }
             }
         }
         /* set tags */

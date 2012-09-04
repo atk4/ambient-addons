@@ -47,14 +47,14 @@ class Page_CmsCore extends Page_CmsAbstract {
             $this->cms_page = $this->api->page;
         }
         $this->m = $this->add("cms/Model_Cms_Page");
-        $this->active = $this->m->getBy("name", $this->cms_page);
-        if ($this->active){
-            $this->m->loadData($this->active["id"]);
+        $this->active = $this->m->tryLoadBy("name", $this->cms_page);
+        if ($this->active->loaded()){
+            $this->m->tryLoad($this->active["id"]);
         } else {
             // page does not exist
         }
     }
-    function page_index(){
+    function initMainPage(){
         if ($this->m && $this->m->isInstanceLoaded()){
             /* page exists */
             $this->initPage();
@@ -114,6 +114,7 @@ class Page_CmsCore extends Page_CmsAbstract {
                     $m->load($page_component_id);
                     if ($m->loaded()){
                         $component_id = $m->get("cms_component_id");
+
                         $g->js()->univ()->frameURL("Configure", $this->api->url($this->getCmsAdminPage()
                                     , array("component_id" => $component_id)))->execute();
                     } else {
