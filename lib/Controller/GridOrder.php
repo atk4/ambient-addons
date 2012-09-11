@@ -25,7 +25,7 @@ class Controller_GridOrder extends AbstractController {
         $v->add('H1')->set('Re-order records the way you like');
 
 
-        $lister=$v->add('MVCLister',null,null,array('view/gridorder'));
+        $lister=$v->add('CompleteLister',null,null,array('view/gridorder'));
         $this->model=$m=$this->owner->getModel();
 
         if(!$m->hasField('ord')){
@@ -38,7 +38,7 @@ class Controller_GridOrder extends AbstractController {
         $lister->js(true)->sortable();
 
         $v->add('Button')->set('Save')->js('click')->univ()->ajaxec(
-                array($this->api->getDestinationURL(),
+                array($this->api->URL(),
                 $this->name.'_order'=>$v->js(null,"\$('#{$lister->name}').children().map(function(){ return $(this).attr('data-id'); }).get().join(',')")
                 )
             );
@@ -50,8 +50,8 @@ class Controller_GridOrder extends AbstractController {
     function processReorder($id_order){
         // add missing "ord" fields
         $q=$this->model->dsql();
-        $q->set('ord=id');
-        $q->where('ord is null');
+        $q->set('ord', $q->expr('id', 'id'));
+        $q->where('ord is null or ord = 0');
         $q->do_update();
 
         $q=$this->model->dsql()->field('id')->field('ord');
@@ -62,7 +62,6 @@ class Controller_GridOrder extends AbstractController {
         foreach($seq as $key=>$val){
             $ord[]=$val['ord'];
         }
-
         sort($ord);
         $list = array();
         foreach(explode(',',$id_order) as $id){
@@ -73,7 +72,7 @@ class Controller_GridOrder extends AbstractController {
             $list[] = $id;
         }
         foreach ($list as $id){
-            $this->model->loadData($id)->hook("post-order");
+            $this->model->load($id)->hook("post-order");
         }
     }
 }
