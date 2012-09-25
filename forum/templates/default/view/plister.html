@@ -1,0 +1,18 @@
+<div id="<?$_name?>">
+    <div class="gs-wrap header">
+        <div class="g-5">Title</div>
+        <div class="g-2">Added</div>
+        <div class="g-2">Last post</div>
+        <div class="g-1">Posts</div>
+    </div>
+    <?rows?>
+    <?row?>
+        <div class="gs-wrap">
+            <div class="g-5"><a href="<?$url?>"><?name?>Title of the discussiont<?/?></a></div>
+            <div class="g-2"><?created_dts?>-<?/?></div>
+            <div class="g-2"><?last_dts?>-<?/?> <?last_user?><?/?></div>
+            <div class="g-1"><?total_posts?>-<?/?></div>
+        </div>
+    <?/row?>
+    <?/rows?>
+</div>
