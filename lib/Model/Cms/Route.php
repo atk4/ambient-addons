@@ -1,5 +1,5 @@
 <?php
-
+namespace cms;
 class Model_Cms_Route extends Model_Cms_Route_Core {
     function init(){
         parent::init();

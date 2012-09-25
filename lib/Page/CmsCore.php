@@ -4,7 +4,7 @@
   *
   * Editing capabilities are moved into CmsFrame.php
   */
-
+namespace cms;
 class Page_CmsCore extends Page_CmsAbstract {
     protected $protected_tags = array(); // non-configurable
     protected $allowed_tags= array(); // which tags to allow for editing in shared
@@ -15,7 +15,7 @@ class Page_CmsCore extends Page_CmsAbstract {
     private $warning;
     public $stop_render = false;
     function getCmsAdminPage(){
-        return $this->api->getDestinationURL('cmsframe',array('cms_page'=>$this->cms_page));//api->page));
+        return $this->api->url('/cmsframe',array('cms_page'=>$this->cms_page));//api->page));
     }
     public function removeProtectedTag($tag){
         unset($this->protected_tags[$tag]);
@@ -46,15 +46,15 @@ class Page_CmsCore extends Page_CmsAbstract {
         if (!$this->cms_page){
             $this->cms_page = $this->api->page;
         }
-        $this->m = $this->add("Model_Cms_Page");
-        $this->active = $this->m->getBy("name", $this->cms_page);
-        if ($this->active){
-            $this->m->loadData($this->active["id"]);
+        $this->m = $this->add("cms/Model_Cms_Page");
+        $this->active = $this->m->tryLoadBy("name", $this->cms_page);
+        if ($this->active->loaded()){
+            $this->m->tryLoad($this->active["id"]);
         } else {
             // page does not exist
         }
     }
-    function page_index(){
+    function initMainPage(){
         if ($this->m && $this->m->isInstanceLoaded()){
             /* page exists */
             $this->initPage();
@@ -62,7 +62,7 @@ class Page_CmsCore extends Page_CmsAbstract {
             /* based on config, should check if authorized, user offer to 
              * create new page */
             if ($this->showConfigure()){
-                $this->add("Text")->set("Page <b>" . $this->cms_page . "</b> does not exist. Create now?");
+                $this->add("Text")->setHTML("Page <b>" . $this->cms_page . "</b> does not exist. Create now?");
                 $f = $this->add("Form");
                 $f->addField("Checkbox", "create")->setCaption("Yes, please");
                 $f->addSubmit("Create");
@@ -88,8 +88,10 @@ class Page_CmsCore extends Page_CmsAbstract {
                     $this->reload();
                 }
             } else if ($cid = $_GET["component_id"]){
+                /* here? */
+
                 $this->api->stickyGET("component_id");
-                $m = $this->add("Model_Cms_Component")->loadData($_GET["component_id"]);
+                $m = $this->add("cms/Model_Cms_Component")->loadData($_GET["component_id"]);
                 $m2 = $this->add($m->getRef("cms_componenttype_id")->get("class"));
                 $m2->useComponent($m);
                 $f = $m2->showConfigureForm($this);
@@ -98,20 +100,22 @@ class Page_CmsCore extends Page_CmsAbstract {
             
             } else {
                 /* configuring tag */
-                $m = $this->add("Model_Cms_Pagecomponent");
+                $m = $this->add("cms/Model_Cms_Pagecomponent");
                 $m->setMasterField("cms_page_id", $this->m->get("id"));
                 $m->setMasterField("template_spot", $c);
                 $g = $this->add("MVCGrid");
                 /* ordering should be done here */
                 $g->setModel($m, array("id", "cms_component"));
-                $g->add('Controller_GridOrder');
+                $g->add('cms/Controller_GridOrder');
                 $g->addColumn("button", "setup");
                 $g->addColumn("delete", "delete");
                 if ($page_component_id = $_GET[$g->name . "_setup"]){
-                    $m->loadData($page_component_id);
-                    if ($m->isInstanceLoaded()){
+                    $m = $this->add("cms/Model_Cms_Pagecomponent");
+                    $m->load($page_component_id);
+                    if ($m->loaded()){
                         $component_id = $m->get("cms_component_id");
-                        $g->js()->univ()->frameURL("Configure", $this->api->getDestinationURL($this->getCmsAdminPage()
+
+                        $g->js()->univ()->frameURL("Configure", $this->api->url($this->getCmsAdminPage()
                                     , array("component_id" => $component_id)))->execute();
                     } else {
                         $g->js()->univ()->alert("error - could not load $page_component_id?")->execute();
@@ -119,7 +123,7 @@ class Page_CmsCore extends Page_CmsAbstract {
                 }
                 $this->add("Text")->set("Create new component");
                 $f =$this->add("MVCForm");
-                $f->setModel($mc=$this->add("Model_Cms_Component"), array("name", "cms_componenttype_id"));
+                $f->setModel($mc=$this->add("cms/Model_Cms_Component"), array("name", "cms_componenttype_id"));
                 $f->addSubmit("Create");
                 if ($f->isSubmitted()){
                     $f->update();
@@ -129,7 +133,7 @@ class Page_CmsCore extends Page_CmsAbstract {
                 }
                 $this->add("Text")->set("Attach existing component");
                 $f =$this->add("Form");
-                $f->addField("Dropdown", "component")->setModel("Cms_Component");
+                $f->addField("Dropdown", "component")->setModel("cms/Cms_Component");
                 $f->addSubmit("Attach");
                 if ($f->isSubmitted()){
                     $m->update(array("cms_component_id" => $f->get("component")));
@@ -143,7 +147,7 @@ class Page_CmsCore extends Page_CmsAbstract {
             
             if ($this->showConfigure('dev')){
                 $this->conf->add("Button")->set("Page settings")->js("click")
-                    ->univ()->frameURL("Page settings", $this->api->getDestinationURL($this->getCmsAdminPage()
+                    ->univ()->frameURL("Page settings", $this->api->url($this->getCmsAdminPage()
                                 , array("configure" => "page")));
             }
             /* add configure buttons for each "tag" */
@@ -156,7 +160,7 @@ class Page_CmsCore extends Page_CmsAbstract {
                     }
                 }
             }
-            $mc = $this->add("Model_Cms_Component");
+            $mc = $this->add("cms/Model_Cms_Component");
             foreach ($tags as $tag){
                 if (in_array($tag, $this->protected_tags)){
                     continue;
@@ -168,10 +172,10 @@ class Page_CmsCore extends Page_CmsAbstract {
                     if ($this->showConfigure('dev')){
                         $this->conf->add("Button")->set("Spot: $tag")->js("click")
                             ->univ()->frameURL("Mangage content of tag $tag",
-                                    $this->api->getDestinationURL($this->getCmsAdminPage()
+                                    $this->api->url($this->getCmsAdminPage()
                                         , array("configure" => $tag)));
                     }
-                    $m = $this->add("Model_Cms_Pagecomponent")->setMasterField("cms_page_id", $this->m->get("id"));
+                    $m = $this->add("cms/Model_Cms_Pagecomponent")->setMasterField("cms_page_id", $this->m->get("id"));
                     $elems = $m->addCondition("template_spot", $tag)->setOrder(null, "ord")->getRows();
                     if (($tag != "Content") && in_array($tag, $api_tags)){
                         $dest = $this->api;
@@ -190,7 +194,7 @@ class Page_CmsCore extends Page_CmsAbstract {
                                 $this->api->stickyGET("cms_page");
                                 $button->set("Edit '" . $component->get("name")."'")->js("click")
                                     ->univ()->frameURL("Configure " . $component->get("name"),
-                                            $this->api->getDestinationURL($this->getCmsAdminPage()
+                                            $this->api->url($this->getCmsAdminPage()
                                                 , array("configure" => "component", "component_id" => $component->get("id"))));
                             }
 
@@ -258,6 +262,9 @@ class Page_CmsCore extends Page_CmsAbstract {
         $this->warning[] = $msg;
     }
     function canConfigure(){
+        if (!$this->api->cms){
+            throw $this->exception("CMS has not been added to your api. Consult documentation");
+        }
         if (!$this->api->canConfigureCms()){
             return;
         }
@@ -272,7 +279,7 @@ class Page_CmsCore extends Page_CmsAbstract {
         }
         $this->api->jui->addStylesheet("cms");
         $this->conf = $this->api->add("View", null, null, array("view/configure-panel"));
-        $this->conf->add("Button")->set("Exit CMS")->js("click")->univ()->location($this->api->getDestinationURL(null, array("showConfigure" => "off")));
+        $this->conf->add("Button")->set("Exit CMS")->js("click")->univ()->location($this->api->url(null, array("showConfigure" => "off")));
     }
     function showConfigure($level=null){
         if ($level && ($this->getCmsLevel() !== $level)){
@@ -285,11 +292,11 @@ class Page_CmsCore extends Page_CmsAbstract {
     }
     function stripUrl($page){
         $page = preg_replace("/.html/", "", $page);
-        $s = $this->add('NoArgURL')->setPage($page);
+        $s = $this->add('cms/NoArgURL')->setPage($page);
     }
 
 }
-class NoArgURL extends URL {
+class NoArgURL extends \URL {
     function addStickyArguments(){
     }
 }
