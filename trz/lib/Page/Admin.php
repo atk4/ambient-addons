@@ -10,20 +10,13 @@ class Page_Admin extends \Page {
         $tabs->addTabURL("./unverified", "Unverified");
     }
     function page_all(){
-        $c=$this->add("CRUD");
-        $c->allow_del = false;
-        $c->allow_edit = true;
-        $c->allow_add = false;
-        $c->setModel($this->m);
+        $this->add("CRUD",array('allow_del'=>false,'allow_add'=>false))
+            ->setModel($this->m);
     }
     function page_incomplete(){
-        $c=$this->add("CRUD");
-        $c->allow_del = false;
-        $c->allow_edit = false;
-        $c->allow_add = false;
-        $c->setModel($this->m)
+        $this->add("CRUD",array('allow_del'=>false,'allow_add'=>false))
+            ->setModel($this->m)
             ->setMasterField("is_completed", false);
-
     }
     function page_unverified(){
         $c=$this->add("CRUD");
