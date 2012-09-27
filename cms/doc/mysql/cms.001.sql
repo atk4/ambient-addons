@@ -36,10 +36,6 @@ CREATE TABLE `cms_component` (
 -- Dumping data for table `cms_component`
 --
 
-LOCK TABLES `cms_component` WRITE;
-/*!40000 ALTER TABLE `cms_component` DISABLE KEYS */;
-/*!40000 ALTER TABLE `cms_component` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `cms_componenttype`
@@ -60,11 +56,9 @@ CREATE TABLE `cms_componenttype` (
 -- Dumping data for table `cms_componenttype`
 --
 
-LOCK TABLES `cms_componenttype` WRITE;
 /*!40000 ALTER TABLE `cms_componenttype` DISABLE KEYS */;
 INSERT INTO `cms_componenttype` VALUES (1,'Text','Cms_Text'),(2,'CRUD','Cms_CRUD');
 /*!40000 ALTER TABLE `cms_componenttype` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `cms_page`
@@ -85,11 +79,6 @@ CREATE TABLE `cms_page` (
 --
 -- Dumping data for table `cms_page`
 --
-
-LOCK TABLES `cms_page` WRITE;
-/*!40000 ALTER TABLE `cms_page` DISABLE KEYS */;
-/*!40000 ALTER TABLE `cms_page` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `cms_pagecomponent`
@@ -112,11 +101,6 @@ CREATE TABLE `cms_pagecomponent` (
 -- Dumping data for table `cms_pagecomponent`
 --
 
-LOCK TABLES `cms_pagecomponent` WRITE;
-/*!40000 ALTER TABLE `cms_pagecomponent` DISABLE KEYS */;
-/*!40000 ALTER TABLE `cms_pagecomponent` ENABLE KEYS */;
-UNLOCK TABLES;
-
 --
 -- Table structure for table `cms_route`
 --
@@ -137,11 +121,9 @@ CREATE TABLE `cms_route` (
 -- Dumping data for table `cms_route`
 --
 
-LOCK TABLES `cms_route` WRITE;
 /*!40000 ALTER TABLE `cms_route` DISABLE KEYS */;
 INSERT INTO `cms_route` VALUES (1,'(cms\\/.*)','cms','cms_page');
 /*!40000 ALTER TABLE `cms_route` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

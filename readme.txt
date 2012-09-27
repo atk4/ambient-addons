@@ -4,7 +4,8 @@ Installation.
 
 1) Edit your lib/Frontend.php (or alternative API)
         $this->addLocation('/',array(
-                    'addons'=>'ambient'
+                    'addons'=>'ambient',
+                    'css'=>'ambient/cms'
                     )
                 )
                 ->setParent($this->pathfinder->base_location)
@@ -23,7 +24,7 @@ class page_cms extends cms\Page_CmsCore {
 
 5) Create page/cmsframe.php
 
-class page_cms extends cms\Page_CmsFrame {
+class page_cmsframe extends cms\Page_CmsFrame {
 }
 
 6) In admin, add cms toggle swith in menu:

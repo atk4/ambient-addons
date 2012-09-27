@@ -49,11 +49,18 @@ class Page_CmsAdmin extends \Page {
     }
     function page_cmson_launch(){
         $this->level = "dev";
-        session_destroy();
-        $a=new \ApiWeb($this->api->getConfig("frontend/token"));
-        $a->initializeSession(true);
-        $a->memorize('cmsediting',true);
-        $a->memorize('cmslevel',$this->level); // switch to true to have plain cms mode
-        header('Location: '.$this->api->pm->base_path.'..');
+        if($this->api->getConfig('frontend/token',false)){
+            if(session_id())session_destroy();
+            $a=new \ApiWeb($this->api->getConfig("frontend/token"));
+            $a->initializeSession(true);
+            $a->memorize('cmsediting',true);
+            $a->memorize('cmslevel',$this->level); // switch to true to have plain cms mode
+            header('Location: '.$this->api->pm->base_path.'..');
+            exit;
+        }else{
+            $this->api->memorize('cmsediting',true);
+            $this->api->memorize('cmslevel',$this->level); // switch to true to have plain cms mode
+            $this->api->redirect('/');
+        }
     }
 }
