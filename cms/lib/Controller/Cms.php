@@ -3,13 +3,15 @@ namespace cms;
 class Controller_Cms extends \AbstractController {
     function init(){
         parent::init();
-        $this->api->addLocation('ambient/cms',array(
+
+        $l=$this->api->locate('addons',__NAMESPACE__,'location');
+
+        $this->api->pathfinder->addLocation($this->api->locate('addons',__NAMESPACE__),array(
                     'template'=>'templates/default',
                     'css'=>'templates/default/css',
                     'js'=>'templates/js'
-                    )
-                )
-                ->setParent($this->api->pathfinder->base_location);
+        ))->setParent($l);
+
 
 
         $this->owner->cms = $this;
