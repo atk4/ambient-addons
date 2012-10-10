@@ -1,4 +1,5 @@
 <?php
+namespace cms;
 class Cms_Markdown extends Cms {
     function init(){
         parent::init();
@@ -7,7 +8,7 @@ class Cms_Markdown extends Cms {
         $this->api->jquery->addStaticInclude('pagedown/Markdown.Converter');
         $this->api->jquery->addStaticInclude('pagedown/Markdown.Sanitizer');
         $this->api->jquery->addStaticInclude('pagedown/Markdown.Editor');
-        $this->api->template->append('js_include',
+        $this->api->template->appendHTML('js_include',
                 '<link type="text/css" href="'.$this->api->locateURL('js','pagedown/demo/browser/demo.css').'" rel="stylesheet" />'."\n");
     }
     function configureFields(){

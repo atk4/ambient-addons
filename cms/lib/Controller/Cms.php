@@ -15,7 +15,6 @@ class Controller_Cms extends \AbstractController {
                 )
                 ->setParent($l);
 
-
         $this->owner->cms = $this;
         $this->owner->addMethod("canConfigureCms", array($this, "canConfigure"));
         // 
