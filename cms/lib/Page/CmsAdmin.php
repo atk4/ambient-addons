@@ -3,13 +3,13 @@ namespace cms;
 class Page_CmsAdmin extends \Page {
     function initMainPage(){
         $t = $this->add("Tabs");
-        $t->addTabURL($this->api->getDestinationURL("./route"), "Routing");
-        $t->addTabURL($this->api->getDestinationURL("./component"), "Component");
-        $t->addTabURL($this->api->getDestinationURL("./componenttype"), "Component types");
-        $t->addTabURL($this->api->getDestinationURL("./page"), "Pages");
-        $t->addTabURL($this->api->getDestinationURL("./pagecomponent"), "Page components");
-        $t->addTabURL($this->api->getDestinationURL("./tag"), "Tags");
-        $t->addTabURL($this->api->getDestinationURL("./cmson"), "Go CMS");
+        $t->addTabURL($this->api->url("./route"), "Routing");
+        $t->addTabURL($this->api->url("./component"), "Component");
+        $t->addTabURL($this->api->url("./componenttype"), "Component types");
+        $t->addTabURL($this->api->url("./page"), "Pages");
+        $t->addTabURL($this->api->url("./pagecomponent"), "Page components");
+        $t->addTabURL($this->api->url("./tag"), "Tags");
+        $t->addTabURL($this->api->url("./cmson"), "Go CMS");
     }
     function page_component(){
         $c = $this->add("CRUD");

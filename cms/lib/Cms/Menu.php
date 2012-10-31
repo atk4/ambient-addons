@@ -11,7 +11,7 @@ class Cms_Menu extends Cms {
             $i = explode(";", $i);
             foreach ($i as $row){
                 $row = explode("=", $row);
-                $m->addMenuItem($row[1], $this->api->getDestinationURL($row[0], array("cms_page" => null)));
+                $m->addMenuItem($row[1], $this->api->url($row[0], array("cms_page" => null)));
             }
         }
     }

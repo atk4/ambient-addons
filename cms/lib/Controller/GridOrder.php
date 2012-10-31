@@ -8,7 +8,7 @@ class Controller_GridOrder extends \AbstractController {
 
         $this->owner->addButton('Re-order records')
             ->js('click')->univ()->frameURL('Re-order records',
-                    $this->api->getDestinationURL(null,
+                    $this->api->url(null,
                         array($this->name=>'activate')),array('width'=>'500px'));
 
         $this->owner->dq->order('ord');
