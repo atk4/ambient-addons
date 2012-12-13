@@ -23,7 +23,7 @@ class Controller_Cms extends \AbstractController {
             return;
         }*/
 
-        $r = $this->api->add("misc/Controller_PatternRouter");
+        $r = $this->api->add("router/Controller_PatternRouter");
         $r->setModel($this->add("cms/Model_Cms_Route"));
         $r->addRule("img\/(.*)", "cms", array("img"));
         $r->addRule("file\/(.*)", "cms", array("file"));
