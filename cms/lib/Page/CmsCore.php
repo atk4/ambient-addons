@@ -176,7 +176,7 @@ class Page_CmsCore extends Page_CmsAbstract {
                                         , array("configure" => $tag)));
                     }
                     $m = $this->add("cms/Model_Cms_Pagecomponent")->setMasterField("cms_page_id", $this->m->get("id"));
-                    $elems = $m->addCondition("template_spot", $tag)->setOrder(null, "ord")->getRows();
+                    $elems = $m->addCondition("template_spot", $tag)->setOrder("ord")->getRows();
                     if (($tag != "Content") && in_array($tag, $api_tags)){
                         $dest = $this->api;
                     } else {
