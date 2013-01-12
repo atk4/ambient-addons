@@ -1,0 +1,11 @@
+Those addons can be used by Agile Toolkit.
+
+1. Install Agile Toolkit into "atk4"
+2. Install addons into "ambient-addons"
+3. Inside your API include addons through addLocation():
+
+	$this->addLocation('/',array(
+		'addons'=>array('ambient-addons')
+	))
+    ->setRelativePath('/')
+    ->setParent($this->pathfinder->base_location);
