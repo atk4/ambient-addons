@@ -1,6 +1,11 @@
 <?php
 namespace cms;
 class Page_CmsAdmin extends \Page {
+
+    public $cms_component_class ='cms/Cms_Component';
+    public $cms_page_class      ='cms/Cms_Page';
+    public $cms_tag             ='cms/Cms_Tag';
+
     function initMainPage(){
         $t = $this->add("Tabs");
         $t->addTabURL($this->api->url("./route"), "Routing");
@@ -13,18 +18,18 @@ class Page_CmsAdmin extends \Page {
     }
     function page_component(){
         $c = $this->add("CRUD");
-        $c->setModel("cms/Cms_Component");
+        $c->setModel($this->cms_component_class);
     }
     function page_tag(){
         $c = $this->add("CRUD");
-        $c->setModel("cms/Cms_Tag");
+        $c->setModel($this->cms_tag_class);
     }
     function page_componenttype(){
         $this->add("CRUD")->setModel("cms/Cms_Componenttype");
     }
     function page_page(){
         $c=$this->add("CRUD");
-        $c->setModel("cms/Cms_Page");
+        $c->setModel($this->cms_page_class);
         if ($c->grid){
             $c->grid->addColumn("expander", "components");
         }
