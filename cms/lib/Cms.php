@@ -20,7 +20,7 @@ abstract class Cms extends \AbstractController{
     }
     function loadData(){
         $data = unserialize(base64_decode($this->component->get("config")));
-        $fields = $this->m->fields?$this->m->fields:$this->m->elements;
+        $fields = @$this->m->fields?$this->m->fields:$this->m->elements;
         foreach ($fields as $name => $aux){
             $this->m->set($name, $data[$name]);
         }

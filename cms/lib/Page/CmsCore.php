@@ -10,10 +10,13 @@ class Page_CmsCore extends Page_CmsAbstract {
     protected $allowed_tags= array(); // which tags to allow for editing in shared
     
     private $cms_page;
-    private $m;
+    protected $m;
     private $active;
     private $warning;
     public $stop_render = false;
+
+    public $cms_page_model_class="cms/Model_Cms_Page";
+
     function getCmsAdminPage(){
         return $this->api->url('/cmsframe',array('cms_page'=>$this->cms_page));//api->page));
     }
@@ -46,7 +49,7 @@ class Page_CmsCore extends Page_CmsAbstract {
         if (!$this->cms_page){
             $this->cms_page = $this->api->page;
         }
-        $this->m = $this->add("cms/Model_Cms_Page");
+        $this->m = $this->add($this->cms_page_model_class);
         $this->active = $this->m->tryLoadBy("name", $this->cms_page);
         if ($this->active->loaded()){
             $this->m->tryLoad($this->active["id"]);
@@ -81,7 +84,8 @@ class Page_CmsCore extends Page_CmsAbstract {
             if ($c == "page"){
                 $f = $this->add("MVCForm");
                 $f->add("Hint")->set("Leave blank unless you know what you do");
-                $f->setModel($this->m->setActualFields(array("api_layout", "page_layout")));
+                $this->m->getField('name')->system(true);
+                $f->setModel($this->m);
                 $f->addSubmit("Save");
                 if ($f->isSubmitted()){
                     $f->update();
