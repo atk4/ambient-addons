@@ -25,8 +25,8 @@ class Controller_Cms extends \AbstractController {
 
         $r = $this->api->add("router/Controller_PatternRouter");
         $r->setModel($this->add("cms/Model_Cms_Route"));
-        $r->addRule("img\/(.*)", "cms", array("img"));
-        $r->addRule("file\/(.*)", "cms", array("file"));
+        $r->addRule("\/img\/(.*)", "cms", array("img"));
+        $r->addRule("\/file\/(.*)", "cms", array("file"));
         $r->route();
         if (isset($this->api->auth)){
             $this->api->auth->allowPage("img");
