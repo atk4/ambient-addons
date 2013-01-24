@@ -9,7 +9,7 @@ Requirements:
 Consider following layout
 
 1. ModelA
--hasMany("B")
+-hasMany("AB")
 
 2. ModelB 
 
@@ -40,7 +40,7 @@ $l->setModels($a, $b, "B");
 note:
 $a must be model and loaded
 $b can be either name of model or model object
-"B" is the name of the model that ModelA has as hasMany in it. 
+"AB" is the name of the model that ModelA has as hasMany in it. 
 
 Demo: http://new.ambienttech.lv/m2m
 and lib/Page/Example.php
