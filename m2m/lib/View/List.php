@@ -234,6 +234,9 @@ class View_List extends \AbstractView {
         $f->addSubmit("Add");
         if ($f->isSubmitted()){
             $id = $f->get("item");
+            if (!$id){
+                $f->displayError("item", "Please select an item");
+            }
             $ex = $this->o["m3"];
             $field = $this->o["m2_field"];
             $ex->unload()

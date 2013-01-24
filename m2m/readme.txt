@@ -1,5 +1,11 @@
 M2M is addon for managing hasMany records.
+---------------------------------------------------------------
+Requirements:
+1) Atk4 master branch
+2) autocomplete add-on (git@github.com:atk4/autocomplete.git)
+-- suggested to use exp branch
 
+---------------------------------------------------------------
 Consider following layout
 
 1. ModelA
@@ -36,4 +42,5 @@ $a must be model and loaded
 $b can be either name of model or model object
 "B" is the name of the model that ModelA has as hasMany in it. 
 
-enjoy:
+Demo: http://new.ambienttech.lv/m2m
+and lib/Page/Example.php
