@@ -10,7 +10,7 @@ class View_List extends \AbstractView {
         $this->setOption("columns", 1);
         $this->setOption("can_add", true);
         $this->setOption("grid_reload_event", "reload" . md5($this->name));
-        $this->setOption("memorize_base" . md5($this->name));
+        $this->setOption("memorize_base", md5($this->name));
     }
     function initComponents(){
         $trigger = $this->name . "_edit";
