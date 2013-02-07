@@ -7,7 +7,7 @@
     background: yellow;
     border: none;
     z-index: 10000;
-    overflow: scroll;
+    overflow: auto;
 }
 .sticky-note.yellow {background: yellow;}
 .sticky-note.red {background: red;}

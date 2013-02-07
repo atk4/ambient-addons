@@ -33,8 +33,10 @@ class StickyNote extends \AbstractController {
             $v->js(true)->draggable(array("stop" => $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"])), array("pos" => $v->js()->position()))->_enclose()));
             $v->js(true)->css("left", $note["x"] ."px");
             $v->js(true)->css("top", $note["y"] . "px");
-            $v->js(true)->find(".edit")->one("click", $v->js()->univ()->frameURL("Edit Note", $vp->getURL($note["id"]))->_enclose());
-            $v->js(true)->find(".del")->one("click", $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"], "delete" => true)))->_enclose());
+            $v->js(true)->find(".edit")->on("click", $v->js()->univ()->frameURL("Edit Note", $vp->getURL($note["id"]))->_enclose());
+            $v->js(true)->on("dblclick", $v->js()->univ()->frameURL("Edit Note", $vp->getURL($note["id"]))->_enclose());
+            $v->js(true)->find(".del")->on("click", $v->js()->univ()->dialogConfirm("Confirm", "Do you really want to delete?",
+                $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"], "delete" => true)))->_enclose())->_enclose());
             $ref[$note["id"]] = $v->js()->reload();
             $refd[$note["id"]] = $v->js()->detach();
         }

@@ -1,4 +1,6 @@
-<div id="<?$_name?>" title="<?$name?>" class="sticky-note <?$color?>">
-    <?$created_dts?> | <a href="#" class="edit">edit</a> <a href="#" class="del">del</a><br />
-    <?$content?>
+<div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable ui-resizable sticky-note <?$color?>" id="<?$_name?>" title="<?$name?>">
+    <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span id="ui-id-4" class="ui-dialog-title">Note on <?$created_dts?></span><a href="#" class="ui-dialog-titlebar-close ui-corner-all del" role="button"><span class="ui-icon ui-icon-closethick">del</span></a></div>
+    <div class="dialog dialog_autosize ui-dialog-content ui-widget-content"  vscrolltop="0" scrollleft="0">
+        <?$content?>
+    </div>
 </div>
