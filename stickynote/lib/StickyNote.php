@@ -2,11 +2,11 @@
 namespace stickynote;
 
 class StickyNote extends \AbstractController {
-    public $can_edit = false;
-    public $can_add = false;
-    public $can_delete = false;
-    public $can_resize = false;
-    public $can_move = false;
+    public $can_edit = true;
+    public $can_add = true;
+    public $can_delete = true;
+    public $can_resize = true;
+    public $can_move = true;
     function init(){
         parent::init();
 
