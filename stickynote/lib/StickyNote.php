@@ -4,6 +4,9 @@ namespace stickynote;
 class StickyNote extends \AbstractController {
     public $can_edit = false;
     public $can_add = false;
+    public $can_delete = false;
+    public $can_resize = false;
+    public $can_move = false;
     function init(){
         parent::init();
 
@@ -21,9 +24,12 @@ class StickyNote extends \AbstractController {
 
 
         $vp = $this->add("VirtualPage");
-        $this->owner->add("Button")->set("Add Sticky")->addClass("sticky-add")->js("click")
-            ->univ()->frameURL("Add Note", $vp->getURL(), array("width" => "400", "dialogClass" => "sticky-note-form"));
-        $self = $this->owner;
+        if ($this->can_add){
+            $this->owner->add("Button")->set("Add Sticky")->addClass("sticky-add")->js("click")
+                ->univ()->frameURL("Add Note", $vp->getURL(), array("width" => "400", "dialogClass" => "sticky-note-form"));
+        }
+        $owner = $this->owner;
+        $self = $this;
         /* existing */
         $m = $this->add("stickynote/Model_StickyNote");
         $base = $this->api->url();
@@ -39,15 +45,17 @@ class StickyNote extends \AbstractController {
             $content = nl2br(htmlspecialchars($note["content"]));
             $v->template->trySetHTML("content", $content);
             $v->template->trySet("created_dts", $note["created_dts"]);
-
-            $v->js(true)->on("dblclick", $edit);
+            if ($this->can_edit){
+                $v->js(true)->on("dblclick", $edit);
+            }
             $v->js(true)->dialog(
                 array(
-                    "resizable" => true,
+                    "resizable" => $this->can_resize,
                     "dialogClass" => "sticky-note " . $note["color"],
                     "closeOnEscape" => false,
                     "closeText" => "Delete?",
                     "position" => array((int)$note["x"], (int)$note["y"]),
+                    "draggable" => $this->can_drag,
                     "dragStop" => $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"])), array("pos" => $v->js()->parent()->position()))->_enclose(),
                     "resizeStop" => $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"])), array(
                         "width" => $v->js()->dialog("option", "width"), 
@@ -55,7 +63,7 @@ class StickyNote extends \AbstractController {
                     ))->_enclose(),
                     "width" => $note["width"]?:250,
                     "height" => $note["height"]?:150,
-                    "beforeClose" => $v->js(null, array($del, "return false;"))->_enclose()
+                    "beforeClose" => $v->js(null, array($this->can_del?$del:'', "return false;"))->_enclose()
                 )
             );
             $ref[$note["id"]] = $v->js()->reload();
@@ -64,7 +72,7 @@ class StickyNote extends \AbstractController {
         }
 
 
-        $vp->set(function($p) use ($vp,$self, $ref, $base){
+        $vp->set(function($p) use ($vp,$owner, $self, $ref, $base){
             $m = $this->add("stickynote/Model_StickyNote");
             $id = $_GET[$vp->name];
             if ((int)$id){
@@ -87,28 +95,30 @@ class StickyNote extends \AbstractController {
                 if ((int)$id){
                     $p->js(null, $ref[$id])->univ()->closeDialog()->execute();
                 }
-                $self->js(null, $p->js()->univ()->closeDialog())->univ()->location()->execute();
+                $owner->js(null, $p->js()->univ()->closeDialog())->univ()->location()->execute();
             }
         });
 
         if (isset($_GET["note"])){
             $m = $this->add("stickynote/Model_StickyNote");
             $m->load($_GET["note"]);
-            if (isset($_GET["delete"])){
+            if (isset($_GET["delete"]) && $this->can_del){
                 $v=$refd[$m["id"]];
                 $m->delete();
                 $v->execute();
             }
-            if (isset($_POST["pos"])){
+            if (isset($_POST["pos"]) && $this->can_drag){
                 $m->set("x", (int)$_POST["pos"]["left"])->set("y", (int)$_POST["pos"]["top"])->save();
             }
-            if (isset($_POST["width"])){
-                $m->set("width", (int)$_POST["width"])->save();
+            if ($this->can_resize){
+                if (isset($_POST["width"])){
+                    $m->set("width", (int)$_POST["width"])->save();
+                }
+                if (isset($_POST["height"])){
+                    $m->set("height", (int)$_POST["height"])->save();
+                }
             }
-            if (isset($_POST["height"])){
-                $m->set("height", (int)$_POST["height"])->save();
-            }
-            $self->js()->execute();
+            $owner->js()->execute();
         }
     }
 }
