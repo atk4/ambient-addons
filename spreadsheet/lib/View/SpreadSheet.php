@@ -56,7 +56,7 @@ class View_SpreadSheet extends \AbstractView {
         /* hint, use filesystem cache for improved performance */
         $template = $this->recall($t="t".$this->cols . "_" . $this->rows);
         /* generate template */
-        if (!$template || true){
+        if (!$template){
             $o = "<table>";
             $o .= "<tr>";
             for ($x = -1; $x < $this->cols; $x++){

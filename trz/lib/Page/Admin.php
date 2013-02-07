@@ -10,13 +10,21 @@ class Page_Admin extends \Page {
         $tabs->addTabURL("./unverified", "Unverified");
     }
     function page_all(){
-        $this->add("CRUD",array('allow_del'=>false,'allow_add'=>false))
-            ->setModel($this->m);
+        $c=$this->add("CRUD",array('allow_del'=>false,'allow_add'=>false));
+        $c->setModel($this->m);
+        if ($c->grid){
+            $c->grid->addPaginator(50);
+            $c->grid->addQuickSearch(array("user", "name", "aux", "info", "method"));
+        }
     }
     function page_incomplete(){
-        $this->add("CRUD",array('allow_del'=>false,'allow_add'=>false))
-            ->setModel($this->m)
+        $c=$this->add("CRUD",array('allow_del'=>false,'allow_add'=>false));
+        $c->setModel($this->m)
             ->setMasterField("is_completed", false);
+        if ($c->grid){
+            $c->grid->addPaginator(50);
+            $c->grid->addQuickSearch(array("user", "name", "aux", "info", "method"));
+        }
     }
     function page_unverified(){
         $c=$this->add("CRUD");
@@ -30,13 +38,10 @@ class Page_Admin extends \Page {
                 if ($id = $_GET["verified"]){
                     $m->load($id)->verify();
                     $c->grid->js(null, $c->grid->js()->reload())->univ()->successMessage("Marked as verified")->execute();
-                    //$c->grid->js(true)->reload();
-                    /*$c->grid->js(true)
-                        ->univ()
-                        ->successMessage("Marked as verified")
-                        ->execute();*/
                 }
             }
+            $c->grid->addPaginator(50);
+            $c->grid->addQuickSearch(array("user", "name", "aux", "info", "method"));
         }
     }
 }

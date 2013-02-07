@@ -7,7 +7,7 @@ class View_Edit extends \AbstractView {
     public $limit = 10; // this is due to memory limits. increase depending on your setupp
     function init(){
         parent::init();
-         $this->f = $this->add("Form", null, null, array("form_empty"));
+        $this->f = $this->add("Form", null, null, array("form_empty"));
         $this->api->addHook("pre-render", array($this, "initComponents"));
     }
     function setDimensions($cols, $rows){
@@ -80,7 +80,7 @@ class View_Edit extends \AbstractView {
         /* hint, use filesystem cache for improved performance */
         $template = $this->recall($t="t".$this->cols . "_" . $this->rows);
         /* generate template */
-        if (!$template || true){
+        if (!$template){
             $o = "<div class=\"atk-grid atk4_grid\"><table>";
             $o .= "<thead class=\"ui-widget-header\"><tr class=\"\">";
             for ($x = -1; $x < $this->cols; $x++){
