@@ -15,7 +15,9 @@ class Controller_Elrte extends \AbstractController {
             ->setFormatFilesTemplate("view/cms_files");
             */
 
-        $this->owner->js(true)->_selectorRegion()->show();
+        // If we are in a pop-up, show ourselves quicker!
+        $this->owner->js(true,'if(typeof region != "undefined")$(region).show();');
+
         $this->owner
             ->setCaption('')
             ->js(true)->_load('elrte/js/elrte.min')
