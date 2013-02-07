@@ -34,8 +34,10 @@ class StickyNote extends \AbstractController {
             $edit = $v->js()->univ()->frameURL("Edit Note", $vp->getURL($note["id"]), array("dialogClass" => "sticky-note-form", "width" => "400"))->_enclose();
             $del = $v->js()->univ()->dialogConfirm("Confirm", "Do you really want to delete?",
                 $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"], "delete" => true)))->_enclose());
+            $content = nl2br(htmlspecialchars($note["content"]));
+            $v->template->trySetHTML("content", $content);
+            $v->template->trySet("created_dts", $note["created_dts"]);
 
-            $v->template->trySet($note);
             $v->js(true)->on("dblclick", $edit);
             $v->js(true)->dialog(
                 array(
