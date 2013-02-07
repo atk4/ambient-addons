@@ -20,7 +20,7 @@ class StickyNote extends \AbstractController {
 
         $vp = $this->add("VirtualPage");
         $this->owner->add("Button")->set("Add Sticky")->addClass("sticky-add")->js("click")
-            ->univ()->frameURL("Add Note", $vp->getURL());
+            ->univ()->frameURL("Add Note", $vp->getURL(), array("width" => "400", "dialogClass" => "sticky-note-form"));
         $self = $this->owner;
         /* existing */
         $m = $this->add("stickynote/Model_StickyNote");
@@ -28,17 +28,35 @@ class StickyNote extends \AbstractController {
         $m->_dsql()->where($m->dsql()->expr("url = '[1]' or is_global = 'Y'")->setCustom("1", (string) $base));
         $ref = array();
         foreach ($m as $note){
+
             $v=$this->owner->add("View", null, null, array("view/stickynote"));
+
+            $edit = $v->js()->univ()->frameURL("Edit Note", $vp->getURL($note["id"]), array("dialogClass" => "sticky-note-form", "width" => "400"))->_enclose();
+            $del = $v->js()->univ()->dialogConfirm("Confirm", "Do you really want to delete?",
+                $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"], "delete" => true)))->_enclose());
+
             $v->template->trySet($note);
-            $v->js(true)->draggable(array("stop" => $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"])), array("pos" => $v->js()->position()))->_enclose()));
-            $v->js(true)->css("left", $note["x"] ."px");
-            $v->js(true)->css("top", $note["y"] . "px");
-            $v->js(true)->find(".edit")->on("click", $v->js()->univ()->frameURL("Edit Note", $vp->getURL($note["id"]))->_enclose());
-            $v->js(true)->on("dblclick", $v->js()->univ()->frameURL("Edit Note", $vp->getURL($note["id"]))->_enclose());
-            $v->js(true)->find(".del")->on("click", $v->js()->univ()->dialogConfirm("Confirm", "Do you really want to delete?",
-                $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"], "delete" => true)))->_enclose())->_enclose());
+            $v->js(true)->on("dblclick", $edit);
+            $v->js(true)->dialog(
+                array(
+                    "resizable" => true,
+                    "dialogClass" => "sticky-note " . $note["color"],
+                    "closeOnEscape" => false,
+                    "closeText" => "Delete?",
+                    "position" => array((int)$note["x"], (int)$note["y"]),
+                    "dragStop" => $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"])), array("pos" => $v->js()->parent()->position()))->_enclose(),
+                    "resizeStop" => $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"])), array(
+                        "width" => $v->js()->dialog("option", "width"), 
+                        "height" => $v->js()->dialog("option", "height")
+                    ))->_enclose(),
+                    "width" => $note["width"]?:250,
+                    "height" => $note["height"]?:150,
+                    "beforeClose" => $v->js(null, array($del, "return false;"))->_enclose()
+                )
+            );
             $ref[$note["id"]] = $v->js()->reload();
-            $refd[$note["id"]] = $v->js()->detach();
+            $refd[$note["id"]] = $v->js()->parent()->detach();
+            $v->js("click", array($v->js()->_selector(".sticky-note")->removeClass("top"), $v->js()->addClass("top")));
         }
 
 
@@ -72,7 +90,15 @@ class StickyNote extends \AbstractController {
                 $m->delete();
                 $v->execute();
             }
-            $m->set("x", (int)$_POST["pos"]["left"])->set("y", (int)$_POST["pos"]["top"])->save();
+            if (isset($_POST["pos"])){
+                $m->set("x", (int)$_POST["pos"]["left"])->set("y", (int)$_POST["pos"]["top"])->save();
+            }
+            if (isset($_POST["width"])){
+                $m->set("width", (int)$_POST["width"])->save();
+            }
+            if (isset($_POST["height"])){
+                $m->set("height", (int)$_POST["height"])->save();
+            }
             $self->js()->execute();
         }
     }

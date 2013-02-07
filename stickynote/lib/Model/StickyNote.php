@@ -20,6 +20,8 @@ class Model_StickyNote extends \Model_Table {
             ));
         $this->addField("x");
         $this->addField("y");
+        $this->addField("width");
+        $this->addField("height");
         $this->addField("created_dts")->type("datetime")->defaultValue(date("Y-m-d H:i:s"));
         /* optional user id */
     }
