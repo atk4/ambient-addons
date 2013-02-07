@@ -2,6 +2,8 @@
 namespace stickynote;
 
 class StickyNote extends \AbstractController {
+    public $can_edit = false;
+    public $can_add = false;
     function init(){
         parent::init();
 
@@ -72,6 +74,11 @@ class StickyNote extends \AbstractController {
             $f->setModel($m, array("content", "is_global", "color"));
             $f->addSubmit();
             if ($f->isSubmitted()){
+                if ((int)$id && !$self->can_edit){
+                    $f->displayError("content", "Sorry, editing is not allowed");
+                } else if (!(int)$id && !$self->can_add){
+                    $f->displayError("content", "Sorry, adding is not allowed");
+                }
                 $f->update();
                 $m=$f->getModel();
                 if (!$m["url"]){
