@@ -4,7 +4,7 @@ namespace stickynote;
 class StickyNote extends \AbstractController {
     public $can_edit = true;
     public $can_add = true;
-    public $can_delete = true;
+    public $can_del = true;
     public $can_resize = true;
     public $can_move = true;
     function init(){
@@ -21,7 +21,9 @@ class StickyNote extends \AbstractController {
                 )
                 ->setParent($l);
         $this->api->template->appendHTML("js_include", "<link rel=\"stylesheet\" type=\"text/css\" href=\"" . $this->api->locateURL('css','stickynote.css') . "\"/>");
-
+        
+        $vv = $this->owner->add("View", null, null, array("view/stickies"));
+        $vvr = $vv->js()->reload();
 
         $vp = $this->add("VirtualPage");
         if ($this->can_add){
@@ -32,12 +34,12 @@ class StickyNote extends \AbstractController {
         $self = $this;
         /* existing */
         $m = $this->add("stickynote/Model_StickyNote");
-        $base = $this->api->url();
+        $base = $this->api->page;
         $m->_dsql()->where($m->dsql()->expr("url = '[1]' or is_global = 'Y'")->setCustom("1", (string) $base));
         $ref = array();
         foreach ($m as $note){
 
-            $v=$this->owner->add("View", null, null, array("view/stickynote"));
+            $v=$vv->add("View", null, null, array("view/stickynote"));
 
             $edit = $v->js()->univ()->frameURL("Edit Note", $vp->getURL($note["id"]), array("dialogClass" => "sticky-note-form", "width" => "400"))->_enclose();
             $del = $v->js()->univ()->dialogConfirm("Confirm", "Do you really want to delete?",
@@ -72,7 +74,7 @@ class StickyNote extends \AbstractController {
         }
 
 
-        $vp->set(function($p) use ($vp,$owner, $self, $ref, $base){
+        $vp->set(function($p) use ($vp,$owner, $self, $ref, $base, $vvr){
             $m = $this->add("stickynote/Model_StickyNote");
             $id = $_GET[$vp->name];
             if ((int)$id){
@@ -95,27 +97,29 @@ class StickyNote extends \AbstractController {
                 if ((int)$id){
                     $p->js(null, $ref[$id])->univ()->closeDialog()->execute();
                 }
-                $owner->js(null, $p->js()->univ()->closeDialog())->univ()->location()->execute();
+                $owner->js(null, array($vvr, $p->js()->univ()->closeDialog()))->execute();
             }
         });
 
         if (isset($_GET["note"])){
             $m = $this->add("stickynote/Model_StickyNote");
-            $m->load($_GET["note"]);
-            if (isset($_GET["delete"]) && $this->can_del){
-                $v=$refd[$m["id"]];
-                $m->delete();
-                $v->execute();
-            }
-            if (isset($_POST["pos"]) && $this->can_move){
-                $m->set("x", (int)$_POST["pos"]["left"])->set("y", (int)$_POST["pos"]["top"])->save();
-            }
-            if ($this->can_resize){
-                if (isset($_POST["width"])){
-                    $m->set("width", (int)$_POST["width"])->save();
+            $m->tryLoad($_GET["note"]);
+            if ($m->loaded()){
+                if (isset($_GET["delete"]) && $this->can_del){
+                    $v=$refd[$m["id"]];
+                    $m->delete();
+                    $v->execute();
                 }
-                if (isset($_POST["height"])){
-                    $m->set("height", (int)$_POST["height"])->save();
+                if (isset($_POST["pos"]) && $this->can_move){
+                    $m->set("x", (int)$_POST["pos"]["left"])->set("y", (int)$_POST["pos"]["top"])->save();
+                }
+                if ($this->can_resize){
+                    if (isset($_POST["width"])){
+                        $m->set("width", (int)$_POST["width"])->save();
+                    }
+                    if (isset($_POST["height"])){
+                        $m->set("height", (int)$_POST["height"])->save();
+                    }
                 }
             }
             $owner->js()->execute();
