@@ -70,7 +70,7 @@ class StickyNote extends \AbstractController {
             );
             $ref[$note["id"]] = $v->js()->reload();
             $refd[$note["id"]] = $v->js()->parent()->detach();
-            $v->js("click", array($v->js()->_selector(".sticky-note")->removeClass("top"), $v->js()->addClass("top")));
+            $v->js("click", array( $v->js()->_selector(".sticky-note")->removeClass("top"), $v->js()->addClass("top")));
         }
 
 
@@ -97,7 +97,7 @@ class StickyNote extends \AbstractController {
                 if ((int)$id){
                     $p->js(null, $ref[$id])->univ()->closeDialog()->execute();
                 }
-                $owner->js(null, array($vvr, $p->js()->univ()->closeDialog()))->execute();
+                $owner->js(null, array($owner->js()->_selector(".sticky-note")->detach(), $vvr, $p->js()->univ()->closeDialog()))->execute();
             }
         });
 
