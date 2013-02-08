@@ -86,8 +86,8 @@ class StickyNote extends \AbstractController {
             if (!$m->loaded()){
                 $x=$f->addField("Hidden", "x");
                 $y=$f->addField("Hidden", "y");
-                $y->js(true)->val($f->js()->_selector("body")->scrollTop());
-                $x->js(true)->val($f->js()->_selector("body")->scrollLeft());
+                $x->js(true)->val($f->js()->offset()->left);
+                $y->js(true)->val($f->js()->offset()->top);
             }
             $f->addSubmit();
             if ($f->isSubmitted()){
