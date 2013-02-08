@@ -57,7 +57,7 @@ class StickyNote extends \AbstractController {
                     "dialogClass" => "sticky-note " . $note["color"],
                     "closeOnEscape" => false,
                     "closeText" => "Delete?",
-                    "position" => array((int)$note["x"], (int)$note["y"]),
+                    "open" => $v->js()->parent()->offset(array("left" => (int)$note["x"], "top" => (int)$note["y"]))->_enclose(),
                     "draggable" => $this->can_move,
                     "dragStop" => $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"])), array("pos" => $v->js()->parent()->position()))->_enclose(),
                     "resizeStop" => $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"])), array(
