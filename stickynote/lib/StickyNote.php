@@ -55,7 +55,7 @@ class StickyNote extends \AbstractController {
                     "closeOnEscape" => false,
                     "closeText" => "Delete?",
                     "position" => array((int)$note["x"], (int)$note["y"]),
-                    "draggable" => $this->can_drag,
+                    "draggable" => $this->can_move,
                     "dragStop" => $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"])), array("pos" => $v->js()->parent()->position()))->_enclose(),
                     "resizeStop" => $v->js()->univ()->ajaxec($this->api->url(null, array("note" => $note["id"])), array(
                         "width" => $v->js()->dialog("option", "width"), 
@@ -107,7 +107,7 @@ class StickyNote extends \AbstractController {
                 $m->delete();
                 $v->execute();
             }
-            if (isset($_POST["pos"]) && $this->can_drag){
+            if (isset($_POST["pos"]) && $this->can_move){
                 $m->set("x", (int)$_POST["pos"]["left"])->set("y", (int)$_POST["pos"]["top"])->save();
             }
             if ($this->can_resize){
