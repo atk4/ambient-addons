@@ -24,6 +24,7 @@ class StickyNote extends \AbstractController {
         
         $vv = $this->owner->add("View", null, null, array("view/stickies"));
         $vvr = $vv->js()->reload();
+        $vv->js(true)->_selector(".sticky-note")->detach();
 
         $vp = $this->add("VirtualPage");
         if ($this->can_add){
@@ -82,6 +83,12 @@ class StickyNote extends \AbstractController {
             }
             $f=$p->add("Form");
             $f->setModel($m, array("content", "is_global", "color"));
+            if (!$m->loaded()){
+                $x=$f->addField("Hidden", "x");
+                $y=$f->addField("Hidden", "y");
+                $y->js(true)->val($f->js()->_selector("body")->scrollTop());
+                $x->js(true)->val($f->js()->_selector("body")->scrollLeft());
+            }
             $f->addSubmit();
             if ($f->isSubmitted()){
                 if ((int)$id && !$self->can_edit){
@@ -92,12 +99,14 @@ class StickyNote extends \AbstractController {
                 $f->update();
                 $m=$f->getModel();
                 if (!$m["url"]){
+                    $m->set("x", $f->get("x"));
+                    $m->set("y", $f->get("y"));
                     $m->set("url", (string)$base)->save();
                 }
                 if ((int)$id){
                     $p->js(null, $ref[$id])->univ()->closeDialog()->execute();
                 }
-                $owner->js(null, array($owner->js()->_selector(".sticky-note")->detach(), $vvr, $p->js()->univ()->closeDialog()))->execute();
+                $owner->js(null, array($vvr, $p->js()->univ()->closeDialog()))->execute();
             }
         });
 
