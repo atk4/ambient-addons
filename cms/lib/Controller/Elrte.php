@@ -20,7 +20,9 @@ class Controller_Elrte extends \AbstractController {
 
         $this->owner
             ->setCaption('')
-            ->js(true)->_load('elrte/js/elrte.min')
+            ->js(true)
+            ->_load('elrte/js/jquery.1.9.compat')
+            ->_load('elrte/js/elrte.min')
             ->addClass("elrte_editor")
             ->elrte(array('width'=>900,
                 'height'=>300,

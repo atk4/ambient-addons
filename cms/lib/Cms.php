@@ -7,13 +7,15 @@ abstract class Cms extends \AbstractController{
     function showConfigureForm($target){
         $f = $target->add("Form", "configureForm");
         $f->setModel($this->m);
-        $this->submit_btn = $f->addSubmit("Save Config");
+        $this->f = $f;
+        $this->submit_btn = $f->addButton("Save Config");
+        $this->submit_btn->js("click", $f->js()->submit());
         if ($f->isSubmitted()){
             $this->component->update(array("config" => base64_encode(serialize($f->get()))));
             if ($_GET["configure"] == "component"){
                 $this->owner->reload();
             } else {
-                $f->js($f->js()->univ()->reloadParent())->univ()->closeDialog()->execute();
+                $f->js(null, $f->js()->univ()->reloadParent())->univ()->closeDialog()->execute();
             }
         }
         return $f;
