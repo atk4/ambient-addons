@@ -23,16 +23,16 @@ class page_cms extends cms\Page_CmsCore {
 
 5) Create page/cmsframe.php
 
-class page_cms extends cms\Page_CmsFrame {
+class page_cmsframe extends cms\Page_CmsFrame {
 }
 
 6) In admin, add cms toggle swith in menu:
 
         ->addMenuItem("cms", "Manage CMS")
 
-7) Add page/cms.php 
+7) Add page/cmsadmin.php 
 
-class page_cms extends cms\Page_CmsAdmin {
+class page_cmsadmin extends cms\Page_CmsAdmin {
 }
 
 important, in $config["frontend"]["token"] - you have to specify the 'Realm' Frontend is using (check your index.php file)
