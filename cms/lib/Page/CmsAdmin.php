@@ -2,9 +2,9 @@
 namespace cms;
 class Page_CmsAdmin extends \Page {
 
-    public $cms_component_class ='cms/Cms_Component';
-    public $cms_page_class      ='cms/Cms_Page';
-    public $cms_tag             ='cms/Cms_Tag';
+    public $cms_component_class = 'cms/Cms_Component';
+    public $cms_page_class      = 'cms/Cms_Page';
+    public $cms_tag             = 'cms/Cms_Tag';
 
     function initMainPage(){
         $t = $this->add("Tabs");
