@@ -1,0 +1,32 @@
+@font-face {
+    font-family: 'dos';
+    src: url('437.ttf');
+}
+
+div.dos div.row div.cell {
+    font-family: 'dos';
+    font-size: 14px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: normal;
+}
+div.dos-outer {
+    padding: 0px;
+    margin: 0px;
+}
+div.dos {
+    background: #000;
+    color: #fff;
+    width: 640px;
+    height: 355px;
+}
+div.dos div.cell {
+    width: 8px;
+    height: 14px;
+    float: left;
+}
+div.dos div.row{
+    clear:both;
+    width: 640px;
+    height: 14px;
+}
