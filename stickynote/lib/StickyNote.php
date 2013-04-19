@@ -31,6 +31,10 @@ class StickyNote extends \AbstractController {
             $this->owner->add("Button")->set("Add Sticky")->addClass("sticky-add")->js("click")
                 ->univ()->frameURL("Add Note", $vp->getURL(), array("width" => "400", "dialogClass" => "sticky-note-form"));
         }
+        $this->owner->add("Button")->set("Toggle Stickies")->addClass("sticky-toggle")->js("click",
+            $this->owner->js()->_selector(".sticky-note")->toggle("fold", 1000)
+        );
+
         $owner = $this->owner;
         $self = $this;
         /* existing */
