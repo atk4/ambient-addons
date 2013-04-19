@@ -8,7 +8,7 @@ class Model_Transaction_My extends Model_Transaction {
             ($this->api->auth ? $this->api->auth->model : null );
 
         if ($u && $u->loaded()){
-            $this->setMasterField("user_id", $u["id"]);
+            $this->addCondition("user_id", $u["id"]);
         }
     }
 }

@@ -20,7 +20,7 @@ class Page_Admin extends \Page {
     function page_incomplete(){
         $c=$this->add("CRUD",array('allow_del'=>false,'allow_add'=>false));
         $c->setModel($this->m)
-            ->setMasterField("is_completed", false);
+            ->addCondition("is_completed", false);
         if ($c->grid){
             $c->grid->addPaginator(50);
             $c->grid->addQuickSearch(array("user", "name", "aux", "info", "method"));
@@ -31,7 +31,7 @@ class Page_Admin extends \Page {
         $c->allow_add = false;
         $m=$c
             ->setModel($this->m)
-            ->setMasterField("is_verified", false);
+            ->addCondition("is_verified", false);
         if ($c->grid){
             $c->grid->addColumn("button", "verified");
             if (isset($_GET["verified"])){

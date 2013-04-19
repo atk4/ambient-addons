@@ -17,9 +17,9 @@ class Page_Frontend extends \Page {
                 $lister->template->trySet($pt->get());
                 $lister->setModel($pt->ref("forum/Post"));
                 $m = $this->add("forum/Model_Post")
-                    ->setMasterField("forum_thread_id", $pt->get("forum_thread_id"))
-                    ->setMasterField("forum_post_id", $post_id)
-                    ->setMasterField("user_id", $this->api->auth->get("id"));
+                    ->addCondition("forum_thread_id", $pt->get("forum_thread_id"))
+                    ->addCondition("forum_post_id", $post_id)
+                    ->addCondition("user_id", $this->api->auth->get("id"));
                 $f = $this->add("Form");
                 $f->setModel($m, array("comment"));
                 $f->addSubmit("Reply");
@@ -39,9 +39,9 @@ class Page_Frontend extends \Page {
                 $lister = $this->add("forum/PLister", null, null, array("view/plister"));
                 $lister->setModel($c);
                 $m = $this->add("forum/Model_Post_Title")
-                    ->setMasterField("forum_thread_id", $thread_id)
-                    ->setMasterField("forum_post_id", "0")
-                    ->setMasterField("user_id", $this->api->auth->get("id"));
+                    ->addCondition("forum_thread_id", $thread_id)
+                    ->addCondition("forum_post_id", "0")
+                    ->addCondition("user_id", $this->api->auth->get("id"));
                 $f = $this->add("Form");
                 $f->setModel($m, array("name", "comment"));
                 $f->addSubmit("Create New Discussion");

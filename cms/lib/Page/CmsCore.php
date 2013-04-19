@@ -105,8 +105,8 @@ class Page_CmsCore extends Page_CmsAbstract {
             } else {
                 /* configuring tag */
                 $m = $this->add("cms/Model_Cms_Pagecomponent");
-                $m->setMasterField("cms_page_id", $this->m->get("id"));
-                $m->setMasterField("template_spot", $c);
+                $m->addCondition("cms_page_id", $this->m->get("id"));
+                $m->addCondition("template_spot", $c);
                 $g = $this->add("MVCGrid");
                 /* ordering should be done here */
                 $g->setModel($m, array("id", "cms_component"));
@@ -179,7 +179,7 @@ class Page_CmsCore extends Page_CmsAbstract {
                                     $this->api->url($this->getCmsAdminPage()
                                         , array("configure" => $tag)));
                     }
-                    $m = $this->add("cms/Model_Cms_Pagecomponent")->setMasterField("cms_page_id", $this->m->get("id"));
+                    $m = $this->add("cms/Model_Cms_Pagecomponent")->addCondition("cms_page_id", $this->m->get("id"));
                     $elems = $m->addCondition("template_spot", $tag)->setOrder("ord")->getRows();
                     if (($tag != "Content") && in_array($tag, $api_tags)){
                         $dest = $this->api;

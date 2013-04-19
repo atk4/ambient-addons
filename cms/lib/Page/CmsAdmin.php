@@ -38,7 +38,7 @@ class Page_CmsAdmin extends \Page {
         $this->api->stickyGET("cms_page_id");
         $id = $_GET["cms_page_id"];
         $c = $this->add("CRUD");
-        $m = $this->add("cms/Model_Cms_Pagecomponent")->setMasterField("cms_page_id", $id);
+        $m = $this->add("cms/Model_Cms_Pagecomponent")->addCondition("cms_page_id", $id);
         $c->setModel($m);
 
     }
