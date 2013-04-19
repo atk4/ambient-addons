@@ -22,14 +22,20 @@ class Cms_Html extends Cms {
         $f->getElement('content')->js(true)->_selectorRegion()->show();
         $f->getElement('content')
             ->setCaption('')
-            ->js(true)->_load('elrte/js/elrte.min')
+            ->js(true)
+            ->_load('elrte/js/jquery.1.9.compat')
+            ->_load('elrte/js/elrte.min')
             ->addClass("elrte_editor")
             ->elrte(array('width'=>900,
                 'height'=>300,
-                'cssfiles'=>array('/cms/templates/default/css/editor.css'),
+                'cssfiles'=>array($this->api->locateURL('css', 'editor.css')),
                 'toolbar'=> 'maxi')
             );
-        $this->submit_btn->js(true)->unbind("click")->bind("click", $this->submit_btn->js(null, '$(".elrte_editor").elrte()[0].save();return false')->_enclose());
+        $this->submit_btn->js(true)->unbind("click")->bind("click",
+            $this->submit_btn->js(null, array(
+                $this->submit_btn->js()->_selector(".elrte_editor")->elrte('updateSource'),
+                $this->f->js()->submit()
+            ))->_enclose());
         return $f;
     }
     function configure($dest, $tag){
