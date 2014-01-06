@@ -8,7 +8,7 @@ class Controller_CPS extends \AbstractController {
     function connect($storage){
         $o = $this->api->getConfig('cp/source/'.$storage);
         $this->storage = $storage;
-        $this->connection = new \CPS_Connection($o["url"], $storage, $o["user"], $o["password"]);
+        $this->connection = new \CPS_Connection($o["url"], $storage, $o["user"], $o["password"], isset($o["root"])?$o["root"]:"document", isset($o["idpath"])?$o["idpath"]:"//document/id");
         $this->simple = new \CPS_Simple($this->connection);
         $this->debug($this->debug);
         return $this;
@@ -17,7 +17,7 @@ class Controller_CPS extends \AbstractController {
         $this->connection
             ->setDebug($debug);
     }
-    function insert($model, $data){
+    function insert($model, &$data){
         /* insert new record and store back to CPS
          *
          * note, if new SUB is added, ask ID to model. otherwise, if it's not 
@@ -27,31 +27,40 @@ class Controller_CPS extends \AbstractController {
          * triggered */
         /* and store iterator */
         if ($model->sub){
+            $iterator = null;
             if ($xml = $model->_get("xml")){
                 /* one to many */
-                $iterator = $xml->{$model->_get("field")}->addChild($model->enclosure);
+                $iterator = $xml->addChild($model->enclosure);
                 if (!isset($data[$model->id_field])){
-                    $data[$model->id_field] = count($xml->{$model->_get("field")});
+                    $max = 0;
+                    foreach ($xml->{$model->enclosure} as $e){
+                        $max = max($max, (int)(string)$e->{$model->id_field});
+                    }
+                    $data[$model->id_field] = $new_id = $max+1;
+                    $model->{$model->id_field} = $new_id;
                 }
             } else {
                 $iterator = $model->_get("iterator");
             }
-            if (!$iterator){
+            if ($iterator === null){
                 throw $this->exception("Cannot insert new record - iterator not available");
             }
             foreach ($data as $k => $v){
+                if ($model->elements[$k]->setterGetter("xpath")){
+                    throw $this->exception("Updating by xpath not supported yet");
+                }
                 $iterator->{$k} = $v;
             }
             $model->_get("parent")->save();
         } else {
             /* store to cluster point */
-            $iterator = new StdClass();
+            $iterator = new \StdClass();
             foreach ($data as $k => $v){
                 $iterator->{$k} = $v;
             }
             $this->simple->insertSingle(null, $iterator);
             $ids=$this->simple->response->getModifiedIds();
-            $model->id=(string)$id[0];
+            $model->id=(string)$ids[0];
         }
         return $iterator;
     }
@@ -60,23 +69,83 @@ class Controller_CPS extends \AbstractController {
         /* set data into iterator */
         $iterator = $model->_get("iterator");
         foreach ($data as $k => $v){
+            if ($xpath=$model->elements[$k]->setterGetter("xpath")){
+                $a = $iterator->xpath($xpath);
+                if ($a){
+                    $i = array_shift($a);
+                    $i[0] = $v;
+                    continue;
+                } else {
+                    throw $this->exception("Could not find xpath: " . $xpath);
+                }
+            }
             $iterator->{$k} = $v;
         }
+        /* remove snippets from iterator */
+        $remove = [];
+        foreach ($model->elements as $k => $v){
+            if ($v instanceof \Field){
+                if ($r=$v->setterGetter("retrieve")){
+                    if ($r != "yes"){
+                        throw $this->exception("Cannot update model, as it contains non-fully loaded fields");
+                    }
+                }
+            }
+        }
+        /*echo "<pre>";
+        print_r($iterator);
+        exit;*/
         if ($model->sub){
             $model->_get("parent")->save();
         } else {
             /* store to cluster point */
+            /*$a=$this->xml2array($iterator);
+            echo "<pre>";
+            print_r($a);
+            exit;*/
+            //$this->simple->partialReplaceSingle($model[$model->id_field], $a);
             $this->simple->updateSingle($model[$model->id_field], $iterator);
         }
+    }
+    function xml2array($xml){
+        $a = json_encode($xml);
+        $a = json_decode($a,true);
+        return $a;
     }
     function rewind($model){
         /* not loaded, load */
         if (isset($model->sub) && $model->sub){
             if (($i=$model->_get("iterator")) instanceof \SimpleXMLIterator){
-                return $i;
+                return [$i, $i->current()];
             } else if ($xml = $model->_get("xml")){
-                $xml->{$model->_get("field")}->rewind();
-                return $xml->{$model->_get("field")}->current();
+                $conditions = $model->_get("conditions");
+                $p = $xml->{$model->enclosure};
+                $p->rewind();
+                list($limit,$offset) = $model->_get("limit");
+                $this->counter = 0;
+                if ($offset > 0){
+                    while ($this->counter < $offset){
+                        if (!($c=$p->current())){
+                            return false;
+                        }
+                        if ($this->match($c, $conditions)){
+                            $this->counter++;
+                        }
+                        $p->next();
+                    }
+                } else {
+                    while (true){
+                        if (!($c = $p->current())){
+                            return false;
+                        }
+                        if ($this->match($c, $conditions)){
+                            break;
+                        }
+                        $p->next();
+                    }
+                }
+                $model->_set("count", count($p)); // should count properly I suppose
+                return [$p, $p->current()];
             }
             /* parent should be loaded */
             throw $this->exception("Trying to iterate submodel, when parent is not loaded!");
@@ -84,19 +153,50 @@ class Controller_CPS extends \AbstractController {
             $xml = $model->_get("xml");
             /* not sub, top. search */
             $list = [];
-            $list["id"] = "yes";
+            /* add all relevant fields */
+            foreach ($model->getActualFields() as $field){
+                if ($retrieve = $model->elements[$field]->setterGetter("retrieve")){
+                    $type = $retrieve;
+                } else {
+                    $type = "yes";
+                }
+                if ($xpath = $model->elements[$field]->setterGetter("xpath")){
+                    $field = $xpath;
+                }
+                $list[$field] = $type;
+            }
             $query = $this->buildQuery($model);
             $order = $this->buildOrder($model);
             list ($limit, $offset) = $model->_get("limit");
             $limit = $limit?:10;
             $offset = $offset?:0;
-            $xml = $this->buildXML($this->simple->search($query, $offset, $limit, $list, $order, "DOC_TYPE_XMLIterator"));
+            $xml = $this->buildXML($d=$this->simple->search($query, $offset, $limit, $list, $order, "DOC_TYPE_XMLIterator"));
             $model->_set("xml", $xml);
             $model->_set("count", $this->simple->response->getParam("hits"));
             $xml->rewind();
-            return $xml->current();
+            return [$xml, $xml->current()];
         }
     }
+    function find($iterator, $conditions){
+        $iterator->rewind();
+        foreach ($iterator as $elem){
+            if ($this->match($elem, $conditions)){
+                return $elem;
+            }
+        }
+    }
+    function match($xml, $cond){
+        if (!empty($cond)){
+            foreach ($cond as $k => $v){
+                $child = (string)$xml->$k;
+                if ((string)$v != $child){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     function buildXML($array){
         $xml = simplexml_load_string('<?'.'xml version="1.0" encoding="UTF-8"'.'?><documents></documents>', 'SimpleXMLIterator');
         foreach ($array as $child){
@@ -111,7 +211,7 @@ class Controller_CPS extends \AbstractController {
                 $p = $ptr->addChild($k);
                 $this->appendXML($p, $v);
             } else {
-                $ptr->addChild($k, (string)$v);
+                $ptr->addChild($k, strtr((string)$v, ["&"=>"&amp;"]));
             }
         }
     }
@@ -136,9 +236,14 @@ class Controller_CPS extends \AbstractController {
     function buildQuery($model){
         if ($c=$model->_get("conditions")){
             foreach ($c as $k => $v){
+                if ($xpath = $model->elements[$k]->setterGetter("xpath")){
+                    $k = $xpath;
+                }
                 if (is_array($v)){
                     if ($v[1] == "like"){
                         $r[] = CPS_Term("*".$v[0]."*", $k);
+                    } else if ($v[1] == "!="){
+                        $r[] = CPS_Term("~".$v[0], $k);
                     } else {
                         $r[] = CPS_Term($v[0], $k);
                     }
@@ -146,30 +251,82 @@ class Controller_CPS extends \AbstractController {
                     $r[] = CPS_Term($v, $k);
                 }
             }
+            //echo htmlspecialchars(print_r($r, 1));
             return implode(" ", $r);
             /* apply */
         } else {
             return "*";
         }
     }
-    function next($model){
-        if (!$model->sub){
-            $xml=$model->_get("xml");
-            $xml->next();
-            return $xml->current();
+    function next($model, $ptr){
+        if (isset($model->sub) && $model->sub){
+            /* here we do soft params */
+            /* technically this is not correct. cps should not handle this.
+             * sub-xml models should be handled by xml processor */
+            list($limit,$offset) = $model->_get("limit");
+            $conditions = $model->_get("conditions");
+            $this->counter++;
+            if ($this->limit && $this->counter > $this->limit - 1){
+                return null;
+            }
+            while (true){
+                $c = $ptr->next();
+                $c = $ptr->current();
+                if (!$c){
+                    return null;
+                }
+                if ($this->match($c, $conditions)){
+                    return $c;
+                }
+            }
         } else {
-            if ($xml = $model->_get("xml")){
-                $xml->{$model->_get("field")}->rewind();
-                return $xml->{$model->_get("field")}->current();
+            /* here we already have pre-filtered results */
+            $ptr->next();
+            if ($ptr->valid()){
+                return $ptr->current();
+            } else {
+                return null;
             }
         }
-        throw $this->exception("No idea how to rewind this object");
     }
     function count($model){
         $this->rewind($model);
         return $model->_get("count");
     }
-    function delete($read,$write, $id_field, $value){
+    function delete($model, $id=null){
+        if ($model->sub){
+            if ($xml=$model->_get("xml")){
+                if (!$id){
+                    $i = $model->_get("iterator");
+                    if (!$i){
+                        throw $this->exception("Either load model before deleteing, or specify id");
+                    } else {
+                        $id = $i->{$model->id_field};
+                    }
+                }
+                $r=$this->rewind($model);
+                if ($r){
+                    list($ptr, $current) = $r;
+                    $counter = 0;
+                    foreach ($ptr as $k => $c){
+                        if ($c->{$model->id_field} == $id){
+                            unset($xml->{$k}[$counter]);
+                            $model->_get("parent")->save();
+                            return;
+                        }
+                        $counter++;
+                    }
+                }
+            }
+        } else {
+            if ($model->loaded()){
+                $this->simple->delete($model[$model->id_field]);
+            } else if ($id){
+                $this->simple->delete($id);
+            } else {
+                throw $this->exception("Load before delete");
+            }
+        }
     }
     function getRootIterator(){
         return $this->xml;
@@ -181,5 +338,19 @@ class Controller_CPS extends \AbstractController {
         } else {
             return $iterator->addChild($field);
         }
+    }
+    function getFacets($model, $path){
+        if (isset($model->sub) && $model->sub){
+            throw $this->exception("Sorry this is available only at top level");
+        }
+        $query = $this->buildQuery($model);
+        $s = new \CPS_SearchRequest($query, 0, 0);
+        $s->setFacet($path);
+        $r = $this->connection->sendRequest($s);
+        $facets = $r->getFacets();
+        if (isset($facets[$path])){
+            return $facets[$path];
+        }
+        return null;
     }
 }

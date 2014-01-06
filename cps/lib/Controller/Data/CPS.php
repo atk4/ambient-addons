@@ -2,11 +2,12 @@
 namespace cps;
 
 class Controller_Data_CPS extends \Controller_Data {
+    public $debug = false;
     /* key difference */
     function setSource($model,$table=null){
         if(!$table)$table=$model->table;
         if(@!$this->api->cp[$table]){
-            $this->api->cp[$table] = $this->add("cps/Controller_CPS")->connect($table);
+            $this->api->cp[$table] = $this->add("cps/Controller_CPS", ["debug" => $this->debug])->connect($table);
         }
         parent::setSource($model,array(
             'conditions'=>array(),
@@ -41,7 +42,9 @@ class Controller_Data_CPS extends \Controller_Data {
             $data[$name]=$value;
 
         }
-        unset($data[$model->id_field]);
+        if (!$data[$model->id_field]){
+            unset($data[$model->id_field]);
+        }
         $this->doSave($model, $data);
     }
     function doSave($model, $data){
@@ -54,8 +57,8 @@ class Controller_Data_CPS extends \Controller_Data {
         $model->dirty=array();
         return $model->id;
     }
-	function delete($model,$id){
-        throw $this->exception("Todo");
+    function delete($model,$id){
+        $model->_get("cps")->delete($model, $id);
     }
     function deleteAll($model){
         throw $this->exception("Todo");
@@ -78,23 +81,32 @@ class Controller_Data_CPS extends \Controller_Data {
             ->addMoreInfo('id',$id);
     }
     function tryLoadAny($model){
-        $this->loadFromIterator($model, $this->cps($model)->rewind($model));
+        $r = $this->cps($model)->rewind($model);
+        if ($r){
+            list($ptr, $current) = $r;
+            $this->loadFromIterator($model, $current);
+        }
         return $this;
     }
 
     /** Create a new cursor and load model with the first entry */
     function rewind($model){
-        $this->loadFromIterator($model, $this->cps($model)->rewind($model));
+        $r = $this->cps($model)->rewind($model);
+        if ($r){
+            list($this->iter_ptr, $current) = $r;
+            $this->loadFromIterator($model, $current);
+        } else {
+            $model->unload();
+        }
         return $this;
     }
 
     /** Provided that rewind was called before, load next data entry */
     function next($model){
-        $this->loadFromIterator($model, $this->cps($model)->next($model));
+        $this->loadFromIterator($model, $this->cps($model)->next($model, $this->iter_ptr));
         return $this;
     }
     function loadFromIterator($model, $iterator){
-
         if (!$iterator){
             $model->unload();
             return false;
@@ -102,7 +114,16 @@ class Controller_Data_CPS extends \Controller_Data {
         $model->_set("iterator", $iterator);
         foreach ($model->elements as $k=>$e){
             if ($e instanceof \Field){
-                $model->data[$e->short_name] = (string)$iterator->{$e->short_name};
+                if ($xpath = $e->setterGetter("xpath")){
+                    $a=$iterator->xpath($xpath);
+                    if ($a){
+                        $model->data[$e->short_name] = (string)array_shift($a);
+                    } else {
+                        $model->data[$e->short_name] = null;
+                    }
+                } else {
+                    $model->data[$e->short_name] = (string)$iterator->{$e->short_name};
+                }
             }
         }
         $model->id=(string)$model->data[$model->id_field]?:null;
@@ -145,6 +166,7 @@ class Controller_Data_CPS extends \Controller_Data {
     function addCondition($model,$field,$cond=undefined,$value=undefined){
         if ($value == undefined){
             $value = $cond;
+            $cond = null;
         }
         if($model->_table[$this->short_name]['conditions'][$field]){
             throw $this->exception('Multiple conditions on same field not supported yet');

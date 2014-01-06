@@ -8,21 +8,20 @@ class Model_XML extends \Model {
     public $source = "XML";
     function init(){
         parent::init();
-        $this->setSource($this->add("cps/Controller_Data_" . $this->source), $this->table);
+        $this->setSource($this->add("cps/Controller_Data_" . $this->source, ["debug" => $this->debug]), $this->table);
     }
     function hasMany($model, $field){
-        $m = $this->add("Model_". $model);
-        $this->refs[$model] = [$m, $field, "many"];
-        return $m;
+        $this->refs[$model] = [$model, $field, "many"];
+        return $this;
     }
     function hasOne($model, $field){
-        $m = $this->add("Model_". $model);
-        $this->refs[$model] = [$m, $field, "one"];
-        return $m;
+        $this->refs[$model] = [$model, $field, "one"];
+        return $this;
     }
     function ref($model){
         if (isset($this->refs[$model])){
-            list($m,$field,$amount) = $this->refs[$model];
+            list($model,$field,$amount) = $this->refs[$model];
+            $m = $this->add("Model_". $model);
             $i = $this->controller->getNode($this, $field);
             $m->controller->_set($m, "root_iterator", $i);
             $m->controller->_set($m, "parent", $this);
