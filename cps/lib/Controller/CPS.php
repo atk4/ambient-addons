@@ -116,7 +116,7 @@ class Controller_CPS extends \AbstractController {
         /* not loaded, load */
         if (isset($model->sub) && $model->sub){
             if (($i=$model->_get("iterator")) instanceof \SimpleXMLIterator){
-                return [$i, $i->current()];
+                return [$i, $i];
             } else if ($xml = $model->_get("xml")){
                 $conditions = $model->_get("conditions");
                 $p = $xml->{$model->enclosure};
@@ -187,10 +187,12 @@ class Controller_CPS extends \AbstractController {
     }
     function match($xml, $cond){
         if (!empty($cond)){
-            foreach ($cond as $k => $v){
-                $child = (string)$xml->$k;
-                if ((string)$v != $child){
-                    return false;
+            foreach ($cond as $k => $vv){
+                foreach ($vv as $v){
+                    $child = (string)$xml->$k;
+                    if ((string)$v != $child){
+                        return false;
+                    }
                 }
             }
         }
@@ -234,29 +236,42 @@ class Controller_CPS extends \AbstractController {
         return null;
     }
     function buildQuery($model){
+        $query = "";
         if ($c=$model->_get("conditions")){
-            foreach ($c as $k => $v){
+            foreach ($c as $k => $vv){
                 if ($xpath = $model->elements[$k]->setterGetter("xpath")){
                     $k = $xpath;
                 }
-                if (is_array($v)){
-                    if ($v[1] == "like"){
-                        $r[] = CPS_Term("*".$v[0]."*", $k);
-                    } else if ($v[1] == "!="){
-                        $r[] = CPS_Term("~".$v[0], $k);
+                foreach ($vv as $v){
+                    if (is_array($v)){
+                        if ($v[1] == "like"){
+                            $r[] = CPS_Term("*".$v[0]."*", $k);
+                        } else if ($v[1] == "!="){
+                            $r[] = CPS_Term("~".$v[0], $k);
+                        } else if ($v[1] == ">="){
+                            $r[] = CPS_Term(">= ".$v[0], $k);
+                        } else if ($v[1] == "<="){
+                            $r[] = CPS_Term("<= ".$v[0], $k);
+                        } else {
+                            throw $this->Exception("Sorry, this comparison " . $v[1] . " is not yet supported");
+                            $r[] = CPS_Term($v[0], $k);
+                        }
                     } else {
-                        $r[] = CPS_Term($v[0], $k);
+                        $r[] = CPS_Term($v, $k);
                     }
-                } else {
-                    $r[] = CPS_Term($v, $k);
                 }
             }
-            //echo htmlspecialchars(print_r($r, 1));
-            return implode(" ", $r);
+            $query = implode(" ", $r);
             /* apply */
-        } else {
-            return "*";
         }
+        if ($q=$model->_get("query")){
+            $query .= $query?" ":"";
+            $query .= $q;
+        }
+        if (!$query){
+            $query = "*";
+        }
+        return $query;
     }
     function next($model, $ptr){
         if (isset($model->sub) && $model->sub){
@@ -352,5 +367,43 @@ class Controller_CPS extends \AbstractController {
             return $facets[$path];
         }
         return null;
+    }
+    function getAggregate($model, $aggregate, $extra_conditions=null){
+        if (isset($model->sub) && $model->sub){
+            throw $this->exception("Sorry this is available only at top level");
+        }
+        $b = [];
+        $ref = [];
+        foreach ($aggregate as $k=>$v){
+            $b[] = $r = CPS_term($v);
+            $ref[$r] = $k;
+        }
+        $query = $this->buildQuery($model);
+        if ($extra_conditions){
+            $c = [];
+            foreach ($extra_conditions as $k=>$e){
+                $c[] = CPS_Term($e,$k);
+            }
+            if ($query != "*"){
+                $query .= " " . implode(" ", $c);
+            } else {
+                $query = implode(" ", $c);
+            }
+        }
+        $s = new \CPS_SearchRequest($query, 0, 0);
+        $s->setAggregate($b);
+        $r = $this->connection->sendRequest($s);
+        $ret = [];
+        if ($a=$r->getAggregate()){
+            foreach ($a as $k => $v){
+                if (!isset($ref[$ref[$k]])){
+                    $ret[$ref[$k]] = [];
+                }
+                foreach ($v as $vv){
+                    $ret[$ref[$k]][] = $vv;
+                }
+            }
+        }
+        return $ret;
     }
 }

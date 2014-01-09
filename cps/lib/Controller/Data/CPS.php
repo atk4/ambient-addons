@@ -20,6 +20,9 @@ class Controller_Data_CPS extends \Controller_Data {
         $model->addMethod("_set", function($o,$k,$v) use ($self,$model){
             return $self->_set($model, $k, $v);
         });
+        $model->addMethod("_append", function($o,$k,$v) use ($self,$model){
+            return $self->_append($model, $k, $v);
+        });
     }
     function save($model,$id=null){
         $data=array();
@@ -144,7 +147,12 @@ class Controller_Data_CPS extends \Controller_Data {
         return $model->_table[$this->short_name][$key];
     }
     public function _set($model,$key,$val){
-       $model->_table[$this->short_name][$key]=$val;
+        $model->_table[$this->short_name][$key]=$val;
+    }
+    public function _append($model,$key,$val,$sep=" "){
+        $v = $model->_get($key);
+        $val = ($v?$v.$sep:"") . $val;
+        $model->_set($key,$val);
     }
     function load($model,$id){
         $this->tryLoadBy($model,$model->id_field,$id);
@@ -168,9 +176,6 @@ class Controller_Data_CPS extends \Controller_Data {
             $value = $cond;
             $cond = null;
         }
-        if($model->_table[$this->short_name]['conditions'][$field]){
-            throw $this->exception('Multiple conditions on same field not supported yet');
-        }
         if ($f=$model->hasElement($field)) {
             if($f->type()=='boolean' && is_bool($value)) {
                 $value=(bool)$value;
@@ -191,10 +196,13 @@ class Controller_Data_CPS extends \Controller_Data {
                     ->addMoreInfo('field',$field);
             }
         }
+        if (!isset($model->_table[$this->short_name]['conditions'][$field])){
+            $model->_table[$this->short_name]['conditions'][$field] = [];
+        }
         if ($cond){
-            $model->_table[$this->short_name]['conditions'][$field]=[$value,$cond];
+            $model->_table[$this->short_name]['conditions'][$field][]=[$value,$cond];
         } else {
-            $model->_table[$this->short_name]['conditions'][$field]=$value;
+            $model->_table[$this->short_name]['conditions'][$field][]=$value;
         }
     }
     function getNode($model, $field){
