@@ -39,8 +39,8 @@ class View_Edit extends \AbstractView {
         $m = $this->getModel();
         reset($m);
         $y = 0;
+        $s = [];
         foreach ($m as $tmp){
-            $this->ids[] = $tmp["id"];
             $x = 0;
             foreach ($this->fields as $field){
                 $fx = "f$y" . "_$x";
