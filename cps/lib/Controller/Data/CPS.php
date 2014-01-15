@@ -6,6 +6,9 @@ class Controller_Data_CPS extends \Controller_Data {
     /* key difference */
     function setSource($model,$table=null){
         if(!$table)$table=$model->table;
+        if ($t=$this->api->getConfig("cps/map/$table", null)){
+            $table = $t;
+        }
         if(@!$this->api->cp[$table]){
             $this->api->cp[$table] = $this->add("cps/Controller_CPS", ["debug" => $this->debug])->connect($table);
         }

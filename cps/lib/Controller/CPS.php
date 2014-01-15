@@ -6,7 +6,7 @@ class Controller_CPS extends \AbstractController {
     public $offset = null;
     public $debug = false;
     function connect($storage){
-        $o = $this->api->getConfig('cp/source/'.$storage);
+        $o = $this->api->getConfig('cps/source/'.$storage);
         $this->storage = $storage;
         $this->connection = new \CPS_Connection($o["url"], $storage, $o["user"], $o["password"], isset($o["root"])?$o["root"]:"document", isset($o["idpath"])?$o["idpath"]:"//document/id");
         $this->simple = new \CPS_Simple($this->connection);
