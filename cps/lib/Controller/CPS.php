@@ -221,12 +221,18 @@ class Controller_CPS extends \AbstractController {
         if ($o = $model->_get("order")){
             $os = [];
             foreach ($o as $k => $v){
+                $e = $model->hasField($v[0]);
+                if ($xpath = $e->setterGetter("xpath")){
+                    $field = $xpath;
+                } else {
+                    $field = $v[0];
+                }
                 if ($v[2] == "numeric"){
-                    $os[] = CPS_NumericOrdering($v[0], $v[1]); 
+                    $os[] = CPS_NumericOrdering($field, $v[1]); 
                 } else if ($v[2] == "date"){
-                    $os[] = CPS_DateOrdering($v[0], $v[1]); 
+                    $os[] = CPS_DateOrdering($field, $v[1]); 
                 } else if ($v[2] == "string"){
-                    $os[] = CPS_StringOrdering($v[0], $v[3],$v[1]); 
+                    $os[] = CPS_StringOrdering($field, $v[3],$v[1]); 
                 } else {
                     throw $this->exception("No idea how to sort this way")->addMoreInfo($v[2]);
                 }
