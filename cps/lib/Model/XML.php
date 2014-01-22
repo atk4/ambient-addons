@@ -6,9 +6,11 @@ class Model_XML extends \Model {
     public $refs = [];
     public $sub = false; // for sub structures, set to true
     public $source = "XML";
+    public $debug = false;
+    public $profile = false;
     function init(){
         parent::init();
-        $this->setSource($this->add("cps/Controller_Data_" . $this->source, ["debug" => $this->debug]), $this->table);
+        $this->setSource($this->add("cps/Controller_Data_" . $this->source, ["debug" => $this->debug, "profile" => $this->profile]), $this->table);
     }
     function hasMany($model, $field){
         $this->refs[$model] = [$model, $field, "many"];

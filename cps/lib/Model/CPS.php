@@ -5,7 +5,7 @@ class Model_CPS extends Model_XML {
     function ref($model){
         if (isset($this->refs[$model])){
             list($model,$field,$amount) = $this->refs[$model];
-            $m = $this->add("Model_". $model);
+            $m = $this->add("Model_". $model, array("debug" => $this->debug, "profile" => $this->profile));
             if ($amount == "many"){
                 $i = $this->controller->getNode($this, $field);
                 $m->_set("xml", $this->_get("iterator")->{$field});

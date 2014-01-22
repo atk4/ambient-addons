@@ -16,6 +16,7 @@ class Controller_CPS extends \AbstractController {
     function debug($debug){
         $this->connection
             ->setDebug($debug);
+        return $this;
     }
     function insert($model, &$data){
         /* insert new record and store back to CPS
@@ -168,9 +169,12 @@ class Controller_CPS extends \AbstractController {
             $query = $this->buildQuery($model);
             $order = $this->buildOrder($model);
             list ($limit, $offset) = $model->_get("limit");
-            $limit = $limit?:10;
+            $limit = ($limit!==null)?$limit:10;
             $offset = $offset?:0;
+            ob_start();
             $xml = $this->buildXML($d=$this->simple->search($query, $offset, $limit, $list, $order, "DOC_TYPE_XMLIterator"));
+            $this->verbose = ob_get_contents();
+            ob_end_clean();
             $model->_set("xml", $xml);
             $model->_set("count", $this->simple->response->getParam("hits"));
             $xml->rewind();

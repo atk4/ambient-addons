@@ -9,8 +9,14 @@ class Controller_Data_CPS extends \Controller_Data {
         if ($t=$this->api->getConfig("cps/map/$table", null)){
             $table = $t;
         }
-        if(@!$this->api->cp[$table]){
-            $this->api->cp[$table] = $this->add("cps/Controller_CPS", ["debug" => $this->debug])->connect($table);
+        if(@!$this->api->cp[$table] || $this->profile){
+            if ($this->profile){
+                $profile = "_Profile";
+            } else {
+                $profile = "";
+            }
+            $this->api->cp[$table] = $this->add("cps/Controller_CPS".$profile, array("debug" => $this->debug))
+                ->connect($table);
         }
         parent::setSource($model,array(
             'conditions'=>array(),
