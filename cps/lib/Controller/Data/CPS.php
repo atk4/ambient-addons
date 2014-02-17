@@ -73,7 +73,7 @@ class Controller_Data_CPS extends \Controller_Data {
         $model->_get("cps")->delete($model, $id);
     }
     function deleteAll($model){
-        throw $this->exception("Todo");
+        $model->_get("cps")->deleteAll($model);
     }
     function getRows($model){
         throw $this->exception("Todo");

@@ -7,6 +7,7 @@ class Controller_CPS extends \AbstractController {
     public $debug = false;
     function connect($storage){
         $o = $this->api->getConfig('cps/source/'.$storage);
+        $storage = isset($o["storage"])?$o["storage"]:$storage;
         $this->storage = $storage;
         $this->connection = new \CPS_Connection($o["url"], $storage, $o["user"], $o["password"], isset($o["root"])?$o["root"]:"document", isset($o["idpath"])?$o["idpath"]:"//document/id");
         $this->simple = new \CPS_Simple($this->connection);
@@ -353,6 +354,36 @@ class Controller_CPS extends \AbstractController {
             }
         }
     }
+    function deleteAll($model){
+        if ($model->sub){
+            if ($xml=$model->_get("xml")){
+                if (!$id){
+                    $i = $model->_get("iterator");
+                    if (!$i){
+                        throw $this->exception("Either load model before deleteing, or specify id");
+                    } else {
+                        $id = $i->{$model->id_field};
+                    }
+                }
+                $r=$this->rewind($model);
+                if ($r){
+                    list($ptr, $current) = $r;
+                    $counter = 0;
+                    foreach ($ptr as $k => $c){
+                        unset($xml->{$k}[$counter]);
+                    }
+                    $model->_get("parent")->save();
+                }
+            }
+        } else {
+            if ($model->loaded()){
+                $this->simple->searchDelete($this->buildQuery($model));
+            } else {
+                throw $this->exception("Load before delete");
+            }
+        }
+    }
+
     function getRootIterator(){
         return $this->xml;
     }
