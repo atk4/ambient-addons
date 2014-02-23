@@ -376,11 +376,7 @@ class Controller_CPS extends \AbstractController {
                 }
             }
         } else {
-            if ($model->loaded()){
-                $this->simple->searchDelete($this->buildQuery($model));
-            } else {
-                throw $this->exception("Load before delete");
-            }
+            $this->simple->searchDelete($this->buildQuery($model));
         }
     }
 
