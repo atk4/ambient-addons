@@ -5,6 +5,7 @@ class Controller_CPS extends \AbstractController {
     public $limit = 50;
     public $offset = null;
     public $debug = false;
+    public $verbose = "";
     function connect($storage){
         $o = $this->api->getConfig('cps/source/'.$storage);
         $storage = isset($o["storage"])?$o["storage"]:$storage;
