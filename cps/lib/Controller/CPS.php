@@ -317,7 +317,10 @@ class Controller_CPS extends \AbstractController {
         }
     }
     function count($model){
+        $l = $model->_get("limit");
+        $model->_set("limit", [0,0]);
         $this->rewind($model);
+        $model->_set("limit",$l);
         return $model->_get("count");
     }
     function delete($model, $id=null){
