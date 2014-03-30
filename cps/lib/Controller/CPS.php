@@ -228,7 +228,10 @@ class Controller_CPS extends \AbstractController {
             $os = [];
             foreach ($o as $k => $v){
                 $e = $model->hasField($v[0]);
-                if ($xpath = $e->setterGetter("xpath")){
+                if ($v[0] && !$e){
+                    throw $this->exception("Sort on non-existing field: ". $v[0]);
+                }
+                if ($e && $xpath = $e->setterGetter("xpath")){
                     $field = $xpath;
                 } else {
                     $field = $v[0];
@@ -239,6 +242,8 @@ class Controller_CPS extends \AbstractController {
                     $os[] = CPS_DateOrdering($field, $v[1]); 
                 } else if ($v[2] == "string"){
                     $os[] = CPS_StringOrdering($field, $v[3],$v[1]); 
+                } else if ($v[2] == "relevance"){
+                    $os[] = CPS_RelevanceOrdering();
                 } else {
                     throw $this->exception("No idea how to sort this way")->addMoreInfo($v[2]);
                 }
