@@ -57,7 +57,8 @@ class Controller_Data_CPS extends \Controller_Data {
         if (!$data[$model->id_field]){
             unset($data[$model->id_field]);
         }
-        $this->doSave($model, $data);
+        $id=$this->doSave($model, $data);
+        return $id;
     }
     function doSave($model, $data){
         if($model->loaded()){
@@ -67,6 +68,7 @@ class Controller_Data_CPS extends \Controller_Data {
         $this->cps($model)->insert($model, $data);
         $model->data=$data;  // will grab defaults here
         $model->dirty=array();
+        
         return $model->id;
     }
     function delete($model,$id){

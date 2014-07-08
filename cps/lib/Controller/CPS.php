@@ -82,8 +82,12 @@ class Controller_CPS extends \AbstractController {
                 $id = $iterator->{$id_field};
             }
             $this->simple->insertSingle($id, $iterator);
-            $ids=$this->simple->response->getModifiedIds();
-            $model->id=(string)$ids[0];
+            if (!$id){
+                $ids=$this->simple->response->getModifiedIds();
+                $model->id = (string)$ids[0];
+            } else {
+                $model->id = $id;
+            }
         }
         return $iterator;
     }
@@ -99,7 +103,19 @@ class Controller_CPS extends \AbstractController {
                     $i[0] = $v;
                     continue;
                 } else {
-                    throw $this->exception("Could not find xpath: " . $xpath);
+                    /* create xpath */
+                    $xpath = explode("/", $xpath);
+                    $i2 = $iterator;
+                    while ($r = array_shift($xpath)){
+                        if (count($xpath)){
+                            if (!isset($i2->{$r})){
+                                $i2->addChild($r);
+                            }
+                            $i2 = $i2->{$r};
+                        } else {
+                            $i2->{$r}[0] = $v;
+                        }
+                    }
                 }
             }
             $iterator->{$k} = $v;
@@ -115,9 +131,6 @@ class Controller_CPS extends \AbstractController {
                 }
             }
         }
-        /*echo "<pre>";
-        print_r($iterator);
-        exit;*/
         if ($model->sub){
             $model->_get("parent")->save();
         } else {
@@ -141,34 +154,27 @@ class Controller_CPS extends \AbstractController {
             if (($i=$model->_get("iterator")) instanceof \SimpleXMLIterator){
                 return [$i, $i];
             } else if ($xml = $model->_get("xml")){
-                $conditions = $model->_get("conditions");
                 $p = $xml->{$model->enclosure};
+                /*
+                 * Process the p to:
+                 * 1) new object, sorted according to sort rules,
+                 * 2) leave only results that match
+                 */
                 $p->rewind();
+                $processed_xml = $this->processXML($p, $model);
                 list($limit,$offset) = $model->_get("limit");
                 $this->counter = 0;
+                if ($offset > count($processed_xml)){
+                    return false;
+                }
                 if ($offset > 0){
                     while ($this->counter < $offset){
-                        if (!($c=$p->current())){
-                            return false;
-                        }
-                        if ($this->match($c, $conditions)){
-                            $this->counter++;
-                        }
-                        $p->next();
-                    }
-                } else {
-                    while (true){
-                        if (!($c = $p->current())){
-                            return false;
-                        }
-                        if ($this->match($c, $conditions)){
-                            break;
-                        }
-                        $p->next();
+                        $this->counter++;
+                        next($processed_xml);
                     }
                 }
-                $model->_set("count", count($p)); // should count properly I suppose
-                return [$p, $p->current()];
+                $model->_set("count", count($processed_xml)); // should count properly I suppose
+                return [$processed_xml, (object)current($processed_xml)];
             }
             /* parent should be loaded */
             throw $this->exception("Trying to iterate submodel, when parent is not loaded!");
@@ -203,6 +209,72 @@ class Controller_CPS extends \AbstractController {
             return [$xml, $xml->current()];
         }
     }
+    function processXML($xml, $model){
+        $a = [];
+        $conditions = $model->_get("conditions");
+        while (true){
+            $c = $xml->current();
+            if (!$c){
+                break;
+            }
+            if ($this->match($c, $conditions)){
+                $row = $this->xml2array($c);
+                $row2 = [];
+                foreach ($row as $k => $v){
+                    if (is_array($v)){
+                        /* this should not be so */
+                        $row2[$k] = null;
+                    } else {
+                        $row2[$k] = $v;
+                    }
+                }
+                $a[] = $row2;
+            }
+            $xml->next();
+        }
+        if ($o = $model->_get("order")){
+            foreach ($o as $k => $v){
+                $e = $model->hasField($v[0]);
+                if ($v[0] && !$e){
+                    throw $this->exception("Sort on non-existing field: ". $v[0]);
+                }
+                if ($e && $xpath = $e->setterGetter("xpath")){
+                    throw $this->exception("X path in supported yet");
+                } else {
+                    $field = $v[0];
+                }
+                $descending = ($v[1] == "descending")?-1:1;
+                if ($v[2] == "numeric"){
+                    uasort($a, function($i,$j) use ($field, $descending){
+                        if ($i[$field] == $j[$field]){
+                            return 0;
+                        }
+                        return $descending * (((float)$i[$field] < (float)$j[$field]) ? -1 : 1);
+                    });
+                } else if ($v[2] == "string"){
+                    uasort($a, function($i,$j) use ($field, $descending){
+                        if ($i[$field] == $j[$field]){
+                            return 0;
+                        }
+                        return $descending * (((string)$i[$field] < (string)$j[$field]) ? -1 : 1);
+                    });
+                } else if ($v[2] == "date"){
+                    usort($a, function($i,$j) use ($field,$descending){
+                        $i1 = strtotime($i[$field]);
+                        $i2 = strtotime($j[$field]);
+                        if ($i1 === $i2){
+                            return 0;
+                        }
+                        return $descending * (($i1 < $i2) ? -1 : 1);
+                    });
+                } else {
+                    throw $this->exception("No idea how to sort this way")->addMoreInfo("sort direction", $v[2]);
+                }
+            }
+        }
+        return $a;
+    }
+
     function find($iterator, $conditions){
         $iterator->rewind();
         foreach ($iterator as $elem){
@@ -224,7 +296,6 @@ class Controller_CPS extends \AbstractController {
         }
         return true;
     }
-
     function buildXML($array){
         $xml = simplexml_load_string('<?'.'xml version="1.0" encoding="UTF-8"'.'?><documents></documents>', 'SimpleXMLIterator');
         foreach ($array as $child){
@@ -265,7 +336,7 @@ class Controller_CPS extends \AbstractController {
                 } else if ($v[2] == "relevance"){
                     $os[] = CPS_RelevanceOrdering();
                 } else {
-                    throw $this->exception("No idea how to sort this way")->addMoreInfo($v[2]);
+                    throw $this->exception("No idea how to sort this way")->addMoreInfo("sort_field", $v[2]);
                 }
             }
             return $os;
@@ -310,7 +381,7 @@ class Controller_CPS extends \AbstractController {
         }
         return $query;
     }
-    function next($model, $ptr){
+    function next($model, &$ptr){
         if (isset($model->sub) && $model->sub){
             /* here we do soft params */
             /* technically this is not correct. cps should not handle this.
@@ -318,18 +389,15 @@ class Controller_CPS extends \AbstractController {
             list($limit,$offset) = $model->_get("limit");
             $conditions = $model->_get("conditions");
             $this->counter++;
-            if ($this->limit && $this->counter > $this->limit - 1){
+            if ($limit && ($this->counter > $limit+$offset-1)){
                 return null;
             }
             while (true){
-                $c = $ptr->next();
-                $c = $ptr->current();
+                $c = next($ptr);
                 if (!$c){
                     return null;
                 }
-                if ($this->match($c, $conditions)){
-                    return $c;
-                }
+                return (object)$c;
             }
         } else {
             /* here we already have pre-filtered results */
