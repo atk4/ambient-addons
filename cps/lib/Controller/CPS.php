@@ -50,7 +50,7 @@ class Controller_CPS extends \AbstractController {
             }
             foreach ($data as $k => $v){
                 if ($model->elements[$k]->setterGetter("xpath")){
-                    throw $this->exception("Updating by xpath not supported yet");
+                    throw $this->exception("Inserting sub-model field by xpath not supported yet");
                 }
                 $iterator->{$k} = $v;
             }
@@ -59,9 +59,29 @@ class Controller_CPS extends \AbstractController {
             /* store to cluster point */
             $iterator = new \StdClass();
             foreach ($data as $k => $v){
-                $iterator->{$k} = $v;
+                if ($xpath=$model->elements[$k]->setterGetter("xpath")){
+                    $xpath = explode("/", $xpath);
+                    $i2 = $iterator;
+                    while ($r = array_shift($xpath)){
+                        if (count($xpath)){
+                            if (!isset($i2->{$r})){
+                                $i2->{$r} = new \StdClass();
+                            }
+                            $i2 = $i2->{$r};
+                        } else {
+                            $i2->{$r} = $v;
+                        }
+                    }
+                } else{
+                    $iterator->{$k} = $v;
+                }
             }
-            $this->simple->insertSingle(null, $iterator);
+            $id_field = $model->id_field;
+            $id = null; // leave for auto increment
+            if (isset($iterator->{$id_field})){
+                $id = $iterator->{$id_field};
+            }
+            $this->simple->insertSingle($id, $iterator);
             $ids=$this->simple->response->getModifiedIds();
             $model->id=(string)$ids[0];
         }
