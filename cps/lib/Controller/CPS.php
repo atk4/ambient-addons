@@ -95,13 +95,18 @@ class Controller_CPS extends \AbstractController {
         /* partial update, store back to CPS */
         /* set data into iterator */
         $iterator = $model->_get("iterator");
+        if (!$model->loaded()){
+            throw $this->exception("Please, load model prior to updating it");
+        }
+        if (!$iterator){
+            throw $this->exception("Iterator not set for model - how to update? Is it loaded?");
+        }
         foreach ($data as $k => $v){
             if ($xpath=$model->elements[$k]->setterGetter("xpath")){
                 $a = $iterator->xpath($xpath);
                 if ($a){
                     $i = array_shift($a);
                     $i[0] = $v;
-                    continue;
                 } else {
                     /* create xpath */
                     $xpath = explode("/", $xpath);
@@ -117,8 +122,9 @@ class Controller_CPS extends \AbstractController {
                         }
                     }
                 }
+            } else {
+                $iterator->{$k} = $v;
             }
-            $iterator->{$k} = $v;
         }
         /* remove snippets from iterator */
         $remove = [];
@@ -414,7 +420,8 @@ class Controller_CPS extends \AbstractController {
         $model->_set("limit", [0,0]);
         $this->rewind($model);
         $model->_set("limit",$l);
-        return $model->_get("count");
+        $c = $model->_get("count");
+        return $c;
     }
     function delete($model, $id=null){
         if ($model->sub){
