@@ -180,7 +180,8 @@ class Controller_CPS extends \AbstractController {
                     }
                 }
                 $model->_set("count", count($processed_xml)); // should count properly I suppose
-                return [$processed_xml, (object)current($processed_xml)];
+                $current = current($processed_xml);
+                return [$processed_xml, $current["_iterator"]];
             }
             /* parent should be loaded */
             throw $this->exception("Trying to iterate submodel, when parent is not loaded!");
@@ -234,6 +235,7 @@ class Controller_CPS extends \AbstractController {
                         $row2[$k] = $v;
                     }
                 }
+                $row2["_iterator"] = $c;
                 $a[] = $row2;
             }
             $xml->next();
