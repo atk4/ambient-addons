@@ -136,7 +136,11 @@ class Controller_Data_CPS extends \Controller_Data {
                         $model->data[$e->short_name] = null;
                     }
                 } else {
-                    $model->data[$e->short_name] = (string)$iterator->{$e->short_name};
+                    if (isset($iterator->{$e->short_name})){
+                        $model->data[$e->short_name] = (string)$iterator->{$e->short_name};
+                    } else {
+                        $model->data[$e->short_name] = null;
+                    }
                 }
             }
         }
