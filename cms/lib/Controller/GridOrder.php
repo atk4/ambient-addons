@@ -50,7 +50,7 @@ class Controller_GridOrder extends \AbstractController {
     function processReorder($id_order){
         // add missing "ord" fields
         $q=$this->model->dsql();
-        $q->set('ord', $q->expr('id', 'id'));
+        $q->set('ord', $q->expr('id'));
         $q->where('ord is null or ord = 0');
         $q->do_update();
 
