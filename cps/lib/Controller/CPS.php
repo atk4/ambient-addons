@@ -127,7 +127,7 @@ class Controller_CPS extends \AbstractController {
             }
         }
         /* remove snippets from iterator */
-        $remove = [];
+        $remove = array();
         foreach ($model->elements as $k => $v){
             if ($v instanceof \Field){
                 if ($r=$v->setterGetter("retrieve")){
@@ -158,7 +158,7 @@ class Controller_CPS extends \AbstractController {
         /* not loaded, load */
         if (isset($model->sub) && $model->sub){
             if (($i=$model->_get("iterator")) instanceof \SimpleXMLIterator){
-                return [$i, $i];
+                return array($i, $i);
             } else if ($xml = $model->_get("xml")){
                 $p = $xml->{$model->enclosure};
                 /*
@@ -181,14 +181,14 @@ class Controller_CPS extends \AbstractController {
                 }
                 $model->_set("count", count($processed_xml)); // should count properly I suppose
                 $current = current($processed_xml);
-                return [$processed_xml, $current["_iterator"]];
+                return array($processed_xml, $current["_iterator"]);
             }
             /* parent should be loaded */
             throw $this->exception("Trying to iterate submodel, when parent is not loaded!");
         } else {
             $xml = $model->_get("xml");
             /* not sub, top. search */
-            $list = [];
+            $list = array();
             /* add all relevant fields */
             foreach ($model->getActualFields() as $field){
                 if ($retrieve = $model->elements[$field]->setterGetter("retrieve")){
@@ -213,11 +213,11 @@ class Controller_CPS extends \AbstractController {
             $model->_set("xml", $xml);
             $model->_set("count", $this->simple->response->getParam("hits"));
             $xml->rewind();
-            return [$xml, $xml->current()];
+            return array($xml, $xml->current());
         }
     }
     function processXML($xml, $model){
-        $a = [];
+        $a = array();
         $conditions = $model->_get("conditions");
         while (true){
             $c = $xml->current();
@@ -226,7 +226,7 @@ class Controller_CPS extends \AbstractController {
             }
             if ($this->match($c, $conditions)){
                 $row = $this->xml2array($c);
-                $row2 = [];
+                $row2 = array();
                 foreach ($row as $k => $v){
                     if (is_array($v)){
                         /* this should not be so */
@@ -318,13 +318,13 @@ class Controller_CPS extends \AbstractController {
                 $p = $ptr->addChild($k);
                 $this->appendXML($p, $v);
             } else {
-                $ptr->addChild($k, strtr((string)$v, ["&"=>"&amp;"]));
+                $ptr->addChild($k, strtr((string)$v, array("&"=>"&amp;")));
             }
         }
     }
     function buildOrder($model){
         if ($o = $model->_get("order")){
-            $os = [];
+            $os = array();
             foreach ($o as $k => $v){
                 $e = $model->hasField($v[0]);
                 if ($v[0] && !$e){
@@ -419,7 +419,7 @@ class Controller_CPS extends \AbstractController {
     }
     function count($model){
         $l = $model->_get("limit");
-        $model->_set("limit", [0,0]);
+        $model->_set("limit", array(0,0));
         $this->rewind($model);
         $model->_set("limit",$l);
         $c = $model->_get("count");
@@ -515,15 +515,15 @@ class Controller_CPS extends \AbstractController {
         if (isset($model->sub) && $model->sub){
             throw $this->exception("Sorry this is available only at top level");
         }
-        $b = [];
-        $ref = [];
+        $b = array();
+        $ref = array();
         foreach ($aggregate as $k=>$v){
             $b[] = $r = CPS_term($v);
             $ref[$r] = $k;
         }
         $query = $this->buildQuery($model);
         if ($extra_conditions){
-            $c = [];
+            $c = array();
             foreach ($extra_conditions as $k=>$e){
                 $c[] = CPS_Term($e,$k);
             }
@@ -536,11 +536,11 @@ class Controller_CPS extends \AbstractController {
         $s = new \CPS_SearchRequest($query, 0, 0);
         $s->setAggregate($b);
         $r = $this->connection->sendRequest($s);
-        $ret = [];
+        $ret = array();
         if ($a=$r->getAggregate()){
             foreach ($a as $k => $v){
                 if (!isset($ref[$ref[$k]])){
-                    $ret[$ref[$k]] = [];
+                    $ret[$ref[$k]] = array();
                 }
                 foreach ($v as $vv){
                     $ret[$ref[$k]][] = $vv;

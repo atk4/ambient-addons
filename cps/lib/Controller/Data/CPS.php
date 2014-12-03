@@ -151,7 +151,7 @@ class Controller_Data_CPS extends \Controller_Data {
         return $model->_get("cps");
     }
     function setLimit($model, $limit, $offset=null){
-        $this->_set($model, "limit", [$limit, $offset]);
+        $this->_set($model, "limit", array($limit, $offset));
     }
     function count($model){
         return $this->cps($model)->count($model);
@@ -212,10 +212,10 @@ class Controller_Data_CPS extends \Controller_Data {
             }
         }
         if (!isset($model->_table[$this->short_name]['conditions'][$field])){
-            $model->_table[$this->short_name]['conditions'][$field] = [];
+            $model->_table[$this->short_name]['conditions'][$field] = array();
         }
         if ($cond){
-            $model->_table[$this->short_name]['conditions'][$field][]=[$value,$cond];
+            $model->_table[$this->short_name]['conditions'][$field][]=array($value,$cond);
         } else {
             $model->_table[$this->short_name]['conditions'][$field][]=$value;
         }
