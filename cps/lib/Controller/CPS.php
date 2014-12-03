@@ -441,8 +441,9 @@ class Controller_CPS extends \AbstractController {
                     list($ptr, $current) = $r;
                     $counter = 0;
                     foreach ($ptr as $k => $c){
-                        if ($c->{$model->id_field} == $id){
-                            unset($xml->{$k}[$counter]);
+                        if ($c[$model->id_field] == $id){
+                            $parent = $c["_iterator"]->xpath("parent::*");
+                            unset($parent[0]->{$model->enclosure}[$counter]);
                             $model->_get("parent")->save();
                             return;
                         }
