@@ -3,21 +3,21 @@ namespace cps;
 
 class Model_XML extends \Model {
     public $enclosure = "document";
-    public $refs = [];
+    public $refs = array();
     public $sub = false; // for sub structures, set to true
     public $source = "XML";
     public $debug = false;
     public $profile = false;
     function init(){
         parent::init();
-        $this->setSource($this->add("cps/Controller_Data_" . $this->source, ["debug" => $this->debug, "profile" => $this->profile]), $this->table);
+        $this->setSource($this->add("cps/Controller_Data_" . $this->source, array("debug" => $this->debug, "profile" => $this->profile)), $this->table);
     }
     function hasMany($model, $field){
-        $this->refs[$model] = [$model, $field, "many"];
+        $this->refs[$model] = array($model, $field, "many");
         return $this;
     }
     function hasOne($model, $field){
-        $this->refs[$model] = [$model, $field, "one"];
+        $this->refs[$model] = array($model, $field, "one");
         return $this;
     }
     function ref($model){

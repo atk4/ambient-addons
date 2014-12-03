@@ -21,8 +21,8 @@ class Model_CPS extends Model_XML {
         return false;
     }
     function setOrder($field, $direction, $type = "numeric", $aux=null){
-        $order = $this->_get("order")?:[];
-        $order[] = [$field, $direction, $type, $aux];
+        $order = $this->_get("order")?:array();
+        $order[] = array($field, $direction, $type, $aux);
         $this->_set("order", $order);
         return $this;
     }
