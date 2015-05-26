@@ -71,8 +71,8 @@ class Controller_Data_CPS extends \Controller_Data {
         
         return $model->id;
     }
-    function delete($model,$id){
-        $model->_get("cps")->delete($model, $id);
+    function delete($model,$id,$soft=false){
+        $model->_get("cps")->delete($model, $id,$soft);
     }
     function deleteAll($model){
         $model->_get("cps")->deleteAll($model);

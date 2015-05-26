@@ -425,7 +425,7 @@ class Controller_CPS extends \AbstractController {
         $c = $model->_get("count");
         return $c;
     }
-    function delete($model, $id=null){
+    function delete($model, $id=null,$soft =false){
         if ($model->sub){
             if ($xml=$model->_get("xml")){
                 if (!$id){
@@ -444,11 +444,14 @@ class Controller_CPS extends \AbstractController {
                         if ($c[$model->id_field] == $id){
                             $parent = $c["_iterator"]->xpath("parent::*");
                             unset($parent[0]->{$model->enclosure}[$counter]);
-                            $model->_get("parent")->save();
+                            if (!$soft){
+                                $model->_get("parent")->save();
+                            }
                             return;
                         }
                         $counter++;
                     }
+                    throw $this->exception("Item to delete not found, id=" . $id);
                 }
             }
         } else {
